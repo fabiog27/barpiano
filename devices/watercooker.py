@@ -12,12 +12,12 @@ class WaterCooker(object):
         self.cooking_duration = cooking_duration
         self.pin_number = pin_number
         self.trigger = trigger
+        print(trigger)
+        print(self.trigger)
 
     def check(self, note_history):
         if len(note_history) < len(self.trigger):
             return
-        print(''.join(note_history[-len(self.trigger):]))
-        print(self.trigger)
         if ''.join(note_history[-len(self.trigger):]) == self.trigger:
             if not self.is_cooking:
                 self.is_cooking = True
