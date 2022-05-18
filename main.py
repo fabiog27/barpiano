@@ -7,7 +7,7 @@ WATER_GPIO_PIN = 27
 
 if __name__ == '__main__':
     coffee_maker = CoffeeMaker(COFFEE_GPIO_PIN)
-    water_cooker = WaterCooker(WATER_GPIO_PIN, 20, 'DEsCB')
+    water_cooker = WaterCooker(WATER_GPIO_PIN, 20, 'DD#CB')
     midimon.register_observer(coffee_maker, 4)
     midimon.register_observer(water_cooker, 4)
     midimon.start_monitor()
