@@ -14,6 +14,7 @@ class WaterCooker(object):
         self.trigger = trigger
 
     def check(self, note_history):
+        print(note_history)
         if len(note_history) < len(self.trigger):
             return
         if ''.join(note_history[-len(self.trigger):]) == self.trigger:
