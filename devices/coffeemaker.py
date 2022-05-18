@@ -1,6 +1,7 @@
 import time
 import serial
 import gpiozero
+import sys
 
 from typing import List
 
@@ -94,5 +95,7 @@ class CoffeeMaker(Device):
         while response_part != '':
             response += response_part
             response_part = self.serial_connection.readline().decode('ascii')
+        print(response)
+        sys.stdout.flush()
         if 'Error' in response:
             raise RuntimeError('Can\'t run coffee machine:\n' + response)
