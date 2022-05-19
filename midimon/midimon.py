@@ -15,15 +15,19 @@ import rtmidi2
 import serial  # pip install pyserial
 import sys
 
+from typing import List
+
+from devices.device import Device
+
 
 class MidiHistoryManager(object):
 
     def __init__(self):
-        self.observers = []
-        self.history = []
-        self.history_length = 20
+        self.observers: List[Device] = []
+        self.history: List[str] = []
+        self.history_length: int = 20
 
-    def add_observer(self, observer, required_history_length):
+    def add_observer(self, observer: Device, required_history_length: int):
         self.observers.append(observer)
         if required_history_length > self.history_length:
             self.history_length = required_history_length
@@ -42,7 +46,7 @@ class MidiHistoryManager(object):
 history_manager = MidiHistoryManager()
 
 
-def register_observer(observer, required_history_length):
+def register_observer(observer: Device, required_history_length: int):
     global history_manager
     print('---------------------------------------------------------')
     print('register observer')

@@ -1,44 +1,24 @@
-import threading
 import time
-
 import gpiozero
 
+from typing import List
 
-class CoffeeMaker(object):
+from devices.device import Device
 
-    def __init__(self, pin_number):
-        self.coffees_poured = 0
-        self.is_making_coffee = False
-        self.pouring_duration = 20
-        self.pin_number = pin_number
 
-    def check(self, note_history):
-        if len(note_history) < 4:
-            return
-        if ''.join(note_history[-4:]) == 'CAFE':
-            if not self.is_making_coffee:
-                self.is_making_coffee = True
-                print('Making coffee...')
-                coffee_thread = threading.Thread(target=self.make_coffee)
-                coffee_thread.start()
-            else:
-                print('Can\'t make more than one coffee at a time!')
+class CoffeeMaker(Device):
 
-    def finish_coffee(self):
-        self.coffees_poured += 1
-        self.is_making_coffee = False
-        print('Coffee is done')
-        text = 'coffee poured' if self.coffees_poured == 1 else 'coffees poured'
-        print(self.coffees_poured, text)
+    def __init__(self, gpio_pin_number: int, duration: int, note_sequence: List[str]):
+        super().__init__('Coffee Maker', gpio_pin_number, duration, note_sequence)
 
-    def make_coffee(self):
+    def trigger(self) -> None:
         led = gpiozero.LED(self.pin_number)
-        for i in range(self.pouring_duration):
+        for i in range(self.duration):
             print('\r', end='')
-            print('[' + (i + 1) * '*' + (self.pouring_duration - i - 1) * '-' + ']', end='')
+            print('[' + (i + 1) * '*' + (self.duration - i - 1) * '-' + ']', end='')
             led.on()
             time.sleep(0.5)
             led.off()
             time.sleep(0.5)
         print()
-        self.finish_coffee()
+        self.finish()
