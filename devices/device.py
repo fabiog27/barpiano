@@ -25,17 +25,17 @@ class Device(object):
         if note_history[-len(self.note_sequence):] == self.note_sequence:
             if not self.is_running:
                 self.is_running = True
-                print('Heating water...')
+                print('Device "', self.name, '" triggered', sep='')
                 device_thread = threading.Thread(target=self.trigger)
                 device_thread.start()
             else:
-                print('Device', self.name, 'can\'t be run multiple times at once!')
+                print('Device "', self.name, '" can\'t be run multiple times at once!', sep='')
 
     def finish(self):
         self.times_run += 1
         self.is_running = False
-        text = self.name + 'has run' + str(self.times_run)
-        text += 'time' if self.times_run == 1 else 'times'
+        text = self.name + ' has run ' + str(self.times_run)
+        text += ' time' if self.times_run == 1 else ' times'
         print(text)
 
     def trigger(self):
