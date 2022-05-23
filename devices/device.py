@@ -1,4 +1,5 @@
 import threading
+import time
 
 from typing import List
 
@@ -37,6 +38,14 @@ class Device(object):
         text = self.name + ' has run ' + str(self.times_run)
         text += ' time' if self.times_run == 1 else ' times'
         print(text)
+
+    def wait(self):
+        for i in range(self.duration):
+            print('\r', end='')
+            print('[' + (i + 1) * '*' + (self.duration - i - 1) * '-' + ']', end='')
+            time.sleep(0.5)
+            time.sleep(0.5)
+        print()
 
     def trigger(self):
         pass
