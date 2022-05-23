@@ -15,7 +15,7 @@ class CoffeeMaker(Device):
 
     def trigger(self) -> None:
         arduino_connection = serial.Serial(COFFEE_MAKER_ARDUINO_IDENTIFIER, 9600, timeout=.1)
-        arduino_connection.write(b'c,0,1')
+        arduino_connection.write(b'{"coffeeType":"c","coffeeAmount":1}')
         time.sleep(1)
         response_part = arduino_connection.read().decode('utf-8')
         response = response_part
