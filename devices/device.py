@@ -1,3 +1,4 @@
+import sys
 import threading
 import time
 
@@ -38,6 +39,7 @@ class Device(object):
         text = self.name + ' has run ' + str(self.times_run)
         text += ' time' if self.times_run == 1 else ' times'
         print(text)
+        sys.stdout.flush()
 
     def wait(self):
         for i in range(self.duration):
