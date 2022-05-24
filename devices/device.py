@@ -1,13 +1,20 @@
 import sys
 import threading
 import time
+import serial
 
 from typing import List
 
 
 class Device(object):
 
-    def __init__(self, name: str, gpio_pin_number: int, duration: int, note_sequence: List[str]):
+    def __init__(
+            self,
+            name: str,
+            gpio_pin_number: int,
+            duration: int,
+            note_sequence: List[str]
+    ):
         """
         :param name:
         :param gpio_pin_number:
