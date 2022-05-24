@@ -1,3 +1,4 @@
+from controller import Controller
 from devices.coffemaker import CoffeeMaker
 from devices.watercooker import WaterCooker
 from midimon import midimon
@@ -15,12 +16,13 @@ if __name__ == '__main__':
         note_sequence=['C', 'A', 'F', 'E'],
     )
     water_cooker = WaterCooker(
-
         gpio_pin_number=WATER_GPIO_PIN,
         serial_identifier=WATER_ARDUINO_IDENTIFIER,
         duration=20,
         note_sequence=['D', 'D#', 'C', 'B'],
     )
-    midimon.register_observer(coffee_maker, 4)
-    midimon.register_observer(water_cooker, 4)
+    controller = Controller()
+    controller.add_device(coffee_maker)
+    controller.add_device(water_cooker)
+    midimon.register_controller(controller)
     midimon.start_monitor()

@@ -15,42 +15,55 @@ import rtmidi2
 import serial  # pip install pyserial
 import sys
 
-from typing import List
+from typing import List, Optional
 
+from controller import Controller
 from devices.device import Device
 
 
 class MidiHistoryManager(object):
 
-    def __init__(self):
-        self.observers: List[Device] = []
-        self.history: List[str] = []
-        self.history_length: int = 20
+    CHORD_THRESHOLD_MS = 60
 
-    def add_observer(self, observer: Device, required_history_length: int):
-        self.observers.append(observer)
-        if required_history_length > self.history_length:
-            self.history_length = required_history_length
+    def __init__(self):
+        self.history: List[str] = []
+        self.chord_history: List[List[str]] = []
+        self.history_length: int = 100
+        self.controller: Optional[Controller] = None
+        self.chord_timestamp = 0
+
+    def set_controller(self, controller: Controller):
+        self.controller = controller
 
     def add_note_to_history(self, note_name):
-        print(note_name)
+        time_stamp = time.time_ns() / 10 ** 6
+        is_within_same_chord = time_stamp < self.chord_timestamp + MidiHistoryManager.CHORD_THRESHOLD_MS
+        if not is_within_same_chord:
+            self.chord_timestamp = time_stamp
+        print(note_name, time_stamp)
         if len(self.history) > 0 and note_name == self.history[-1]:
             return
         self.history.append(note_name)
+        if is_within_same_chord and len(self.chord_history) > 0:
+            self.chord_history[-1].append(note_name)
+        else:
+            self.chord_history.append([note_name])
         if len(self.history) > self.history_length:
             self.history.pop(0)
-        for observer in self.observers:
-            observer.check(self.history)
+        if len(self.chord_history) > self.history_length:
+            self.chord_history.pop(0)
+        if self.controller is not None:
+            self.controller.check(self.history, self.chord_history)
 
 
 history_manager = MidiHistoryManager()
 
 
-def register_observer(observer: Device, required_history_length: int):
+def register_controller(controller: Controller):
     global history_manager
     print('---------------------------------------------------------')
-    print('register observer')
-    history_manager.add_observer(observer, required_history_length)
+    print('register controller')
+    history_manager.set_controller(controller)
 
 
 print("\n# Watch the messages on screen:\n"
@@ -225,7 +238,6 @@ def checklength(definition, gotlen):
 
 def MidiCallback(mididev, message, time_stamp):
     if verbose:
-        time_stamp = None
         print("%s, %s, %s" % (mididev, message, time_stamp))
         hexp = "MIDImsg ="
         for i in message:
@@ -259,7 +271,7 @@ def MidiCallback(mididev, message, time_stamp):
             note_name = midinote2notename(data1, 1)
             short_name = note_name["short_name"]
             if event_type == 'NoteOn' and messagechannel == 1:
-                history_manager.add_note_to_history(short_name)
+                history_manager.add_note_to_history(short_name, time_stamp)
             spec = "%d=%s, velocity=%d" % (data1, note_name["full_name"], data2)
         elif messagetype == 10:  # Polyphonic aftertouch
             note_name = midinote2notename(data1, 1)

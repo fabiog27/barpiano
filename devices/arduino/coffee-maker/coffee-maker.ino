@@ -1,6 +1,6 @@
 #include <ArduinoJson.h>
 
-#define COFFEE_PIN 2
+#define COFFEE_PIN 4
 #define ESPRESSO_PIN 3
 #define COFFEE_TIME 30
 #define ESPRESSO_TIME 20
@@ -13,6 +13,8 @@ void setup() {
   Serial.setTimeout(200);
   pinMode(COFFEE_PIN, OUTPUT);
   pinMode(ESPRESSO_PIN, OUTPUT);
+  digitalWrite(COFFEE_PIN, LOW);
+  digitalWrite(ESPRESSO_PIN, LOW);
 }
 
 void loop() {
@@ -23,7 +25,7 @@ void loop() {
     } else {
       DeserializationError error = deserializeJson(jsonDoc, message);
       if (error) {
-        Serial.print("deserializeJson failed: ");
+        Serial.print("deserializeJson failed: \n");
         Serial.print(error.f_str());
         Serial.print("\n");
       }
@@ -36,25 +38,10 @@ void loop() {
 }
 
 void makeCoffee(String coffeeType, int coffeeAmount) {
-  isMakingCoffee = true;
   if (coffeeType.equals("c")) {
-    blinkLED(COFFEE_PIN, COFFEE_TIME * coffeeAmount);
-  } else if (coffeeType.equals("e")) {
-    blinkLED(ESPRESSO_PIN, ESPRESSO_TIME * coffeeAmount);
-  }
-  isMakingCoffee = false;
-}
-
-void blinkLED(int pinNumber, int times) {
-  byte value = 1;
-  for (int i = 0; i < times; i++) {
-    if (pinNumber == 2) {
-      digitalWrite(pinNumber, value);
-    } else {
-      analogWrite(pinNumber, value * 255);
-    }
-    value++;
-    value = value % 2;
-    delay(1000);
+    digitalWrite(COFFEE_PIN, HIGH);
+    delay(200);
+    digitalWrite(COFFEE_PIN, LOW);
+    delay(COFFEE_TIME * 1000);
   }
 }

@@ -11,7 +11,7 @@ COFFEE_MAKER_ARDUINO_IDENTIFIER = '/dev/ttyACM0'
 class CoffeeMaker(Device):
 
     def __init__(self, gpio_pin_number: int, serial_identifier: str, duration: int, note_sequence: List[str]):
-        super().__init__('Coffee Maker', gpio_pin_number, duration, note_sequence)
+        super().__init__('Coffee Maker', gpio_pin_number, duration, note_sequence, None)
         self.serial_connection = serial.Serial(serial_identifier, baudrate=9600, timeout=0.5)
 
     def trigger(self) -> None:
