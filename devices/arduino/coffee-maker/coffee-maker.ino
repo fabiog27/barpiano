@@ -6,7 +6,6 @@
 #define ESPRESSO_TIME 20
 
 bool isMakingCoffee = false;
-bool isLEDOn = false;
 StaticJsonDocument<200> jsonDoc;
 
 void setup() {
@@ -30,18 +29,20 @@ void loop() {
       }
       const String coffeeType = jsonDoc["coffeeType"];
       const int coffeeAmount = jsonDoc["coffeeAmount"];
-      Serial.print("1");
+      Serial.println("1");
       makeCoffee(coffeeType, coffeeAmount);
     }
   }
 }
 
 void makeCoffee(String coffeeType, int coffeeAmount) {
+  isMakingCoffee = true;
   if (coffeeType.equals("c")) {
     blinkLED(COFFEE_PIN, COFFEE_TIME * coffeeAmount);
   } else if (coffeeType.equals("e")) {
     blinkLED(ESPRESSO_PIN, ESPRESSO_TIME * coffeeAmount);
   }
+  isMakingCoffee = false;
 }
 
 void blinkLED(int pinNumber, int times) {
