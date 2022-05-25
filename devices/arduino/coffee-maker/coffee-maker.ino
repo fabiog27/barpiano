@@ -8,7 +8,6 @@
 #define COFFEE_1_PIN 25
 #define STEAM_PIN 26
 
-bool isMakingCoffee = false;
 StaticJsonDocument<200> jsonDoc;
 
 void setup() {
@@ -31,18 +30,14 @@ void setupPin(int number) {
 void loop() {
   String message = Serial.readString();
   if (message.length() > 0) {
-    if (isMakingCoffee) {
-      Serial.print("Coffee making in progress, please wait");
-    } else {
-      DeserializationError error = deserializeJson(jsonDoc, message);
-      if (error) {
-        Serial.print("Error: deserializeJson failed: \n");
-        Serial.print(error.f_str());
-        Serial.print("\n");
-      }
-      const String action = jsonDoc["action"];
-      executeAction(action);
+    DeserializationError error = deserializeJson(jsonDoc, message);
+    if (error) {
+      Serial.print("Error: deserializeJson failed: \n");
+      Serial.print(error.f_str());
+      Serial.print("\n");
     }
+    const String action = jsonDoc["action"];
+    executeAction(action);
   }
 }
 
