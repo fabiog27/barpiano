@@ -1,6 +1,7 @@
 from typing import List
 
 from devices.device import Device
+from helpers.chordmatcher import do_chords_sequences_match
 
 
 class Controller(object):
@@ -15,14 +16,12 @@ class Controller(object):
         self.devices.append(device)
 
     def check(self, note_history: List[str], chord_history: List[List[str]]):
-        is_trigger_chord_sequence = len(chord_history) > len(Controller.BAR_MODE_CHORD_SEQUENCE) and chord_history[-len(
-            Controller.BAR_MODE_CHORD_SEQUENCE
-        ):] == Controller.BAR_MODE_CHORD_SEQUENCE
+        is_trigger = self.is_trigger_chord_sequence(chord_history)
 
-        if not self.is_in_bar_mode and is_trigger_chord_sequence:
+        if not self.is_in_bar_mode and is_trigger:
             self.start_bar_mode()
             return
-        elif self.is_in_bar_mode and is_trigger_chord_sequence:
+        elif self.is_in_bar_mode and is_trigger:
             self.end_bar_mode()
             return
 
@@ -30,6 +29,12 @@ class Controller(object):
             was_triggered = device.check(note_history, chord_history)
             if was_triggered:
                 break
+
+    def is_trigger_chord_sequence(self, chord_history):
+        if len(chord_history) < len(self.BAR_MODE_CHORD_SEQUENCE):
+            return False
+        relevant_history = chord_history[-len(self.BAR_MODE_CHORD_SEQUENCE):]
+        return do_chords_sequences_match(relevant_history, self.BAR_MODE_CHORD_SEQUENCE)
 
     def start_bar_mode(self):
         print('Starting bar mode')
