@@ -2,7 +2,7 @@ from controller import Controller
 from devices.coffeemaker import CoffeeMaker
 from midimon import midimon
 
-COFFEE_ARDUINO_IDENTIFIER = '/dev/ttyACM0'
+COFFEE_ARDUINO_IDENTIFIER = '/dev/ttyUSB0'
 
 if __name__ == '__main__':
     coffee_maker = CoffeeMaker(
