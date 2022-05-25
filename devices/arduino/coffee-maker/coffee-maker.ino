@@ -14,10 +14,18 @@ StaticJsonDocument<200> jsonDoc;
 void setup() {
   Serial.begin(9600);
   Serial.setTimeout(200);
-  for (int i = 16; i <= 22; i++) {
-    pinMode(i, OUTPUT);
-    digitalWrite(i, HIGH);
-  }
+  setupPin(POWER_PIN);
+  setupPin(ESPRESSO_1_PIN);
+  setupPin(ESPRESSO_2_PIN);
+  setupPin(CLEAN_PIN);
+  setupPin(COFFEE_2_PIN);
+  setupPin(COFFEE_1_PIN);
+  setupPin(STEAM_PIN);
+}
+
+void setupPin(int number) {
+  pinMode(number, OUTPUT);
+  digitalWrite(number, HIGH);
 }
 
 void loop() {

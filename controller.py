@@ -9,7 +9,7 @@ class Controller(object):
     def __init__(self):
         self.devices: List[Device] = []
         self.is_in_bar_mode: bool = False
-        self.is_bar_mode_starting: bool = False
+        self.is_bar_mode_ready: bool = False
 
     def add_device(self, device: Device):
         self.devices.append(device)
@@ -32,11 +32,13 @@ class Controller(object):
                 break
 
     def start_bar_mode(self):
+        print('Starting bar mode')
         self.is_in_bar_mode = True
         for device in self.devices:
             device.start_up()
 
     def end_bar_mode(self):
+        print('Ending bar mode')
         self.is_in_bar_mode = False
         for device in self.devices:
             device.shut_down()

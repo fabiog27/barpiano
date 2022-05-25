@@ -1,9 +1,7 @@
 import sys
 import threading
-import time
-import serial
 
-from typing import List, Optional
+from typing import List
 
 
 class Device(object):
@@ -11,10 +9,8 @@ class Device(object):
     def __init__(
             self,
             name: str,
-            gpio_pin_number: int,
-            duration: int,
-            note_sequence: List[str],
-            chord_sequence: Optional[List[List[str]]],
+            note_sequences: List[List[str]],
+            chord_sequences: List[List[List[str]]],
     ):
         """
         :param name:
@@ -24,37 +20,44 @@ class Device(object):
         """
         self.times_run = 0
         self.is_running = False
-        self.duration = duration
-        self.pin_number = gpio_pin_number
-        self.note_sequence = note_sequence
-        self.chord_sequence = chord_sequence
+        self.note_sequences = note_sequences
+        self.chord_sequences = chord_sequences
         self.name = name
 
     def check(self, note_history: List[str], chord_history: List[List[str]]) -> bool:
-        is_trigger_note_sequence = self.check_note_history(note_history)
-        is_trigger_chord_sequence = self.check_chord_history(chord_history)
-        if is_trigger_note_sequence or is_trigger_chord_sequence:
+        trigger_note_sequence = self.check_note_history(note_history)
+        trigger_chord_sequence = self.check_chord_history(chord_history)
+        if trigger_note_sequence != [] or trigger_chord_sequence != []:
             if not self.is_running:
                 self.is_running = True
                 print('Device "', self.name, '" triggered', sep='')
-                device_thread = threading.Thread(target=self.trigger)
+                device_thread = threading.Thread(
+                    target=self.trigger,
+                    args=(trigger_note_sequence, trigger_chord_sequence,)
+                )
                 device_thread.start()
+                sys.stdout.flush()
                 return True
             else:
                 print('Device "', self.name, '" can\'t be run multiple times at once!', sep='')
+                sys.stdout.flush()
                 return True
 
-    def check_note_history(self, note_history: List[str]) -> bool:
-        if len(note_history) < len(self.note_sequence):
-            return False
-        return note_history[-len(self.note_sequence):] == self.note_sequence
+    def check_note_history(self, note_history: List[str]) -> List[str]:
+        for note_sequence in self.note_sequences:
+            if len(note_history) < len(note_sequence):
+                continue
+            if note_history[-len(note_sequence):] == note_sequence:
+                return note_sequence
+        return []
 
     def check_chord_history(self, chord_history: List[List[str]]) -> bool:
-        if self.chord_sequence is None:
-            return False
-        if len(chord_history) < len(self.chord_sequence):
-            return False
-        return chord_history[-len(self.chord_sequence):] == self.chord_sequence
+        for chord_sequence in self.chord_sequences:
+            if len(chord_history) < len(chord_sequence):
+                continue
+            if chord_history[-len(chord_sequence):] == chord_sequence:
+                return True
+        return False
 
     def finish(self):
         self.times_run += 1
@@ -64,19 +67,11 @@ class Device(object):
         print(text)
         sys.stdout.flush()
 
-    def wait(self):
-        for i in range(self.duration):
-            print('\r', end='')
-            print('[' + (i + 1) * '*' + (self.duration - i - 1) * '-' + ']', end='')
-            time.sleep(0.5)
-            time.sleep(0.5)
-        print()
-
-    def trigger(self):
+    def trigger(self, note_sequence, chord_sequence):
         pass
 
-    def start_up(self):
+    def start_up(self) -> bool:
         pass
 
-    def shut_down(self):
+    def shut_down(self) -> bool:
         pass

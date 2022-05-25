@@ -28,7 +28,7 @@ class MidiHistoryManager(object):
     def __init__(self):
         self.history: List[str] = []
         self.chord_history: List[List[str]] = []
-        self.history_length: int = 100
+        self.history_length: int = 20
         self.controller: Optional[Controller] = None
         self.chord_timestamp = 0
 
@@ -52,6 +52,7 @@ class MidiHistoryManager(object):
             self.history.pop(0)
         if len(self.chord_history) > self.history_length:
             self.chord_history.pop(0)
+        print(self.chord_history)
         if self.controller is not None:
             self.controller.check(self.history, self.chord_history)
 
@@ -267,11 +268,11 @@ def MidiCallback(mididev, message, time_stamp):
         messagetype = status >> 4
         messagechannel = (status & 0xF) + 1  # make channel# human..
         event_type = messages[messagetype][1]
-        if messagetype in [8, 9]:  # note off/on
+        if messagetype == 9:  # note off/on
             note_name = midinote2notename(data1, 1)
             short_name = note_name["short_name"]
-            if event_type == 'NoteOn' and messagechannel == 1:
-                history_manager.add_note_to_history(short_name, time_stamp)
+            if messagechannel == 1 and data2 != 0:
+                history_manager.add_note_to_history(short_name)
             spec = "%d=%s, velocity=%d" % (data1, note_name["full_name"], data2)
         elif messagetype == 10:  # Polyphonic aftertouch
             note_name = midinote2notename(data1, 1)
