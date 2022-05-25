@@ -40,9 +40,6 @@ class MidiHistoryManager(object):
         is_within_same_chord = time_stamp < self.chord_timestamp + MidiHistoryManager.CHORD_THRESHOLD_MS
         if not is_within_same_chord:
             self.chord_timestamp = time_stamp
-        print(note_name, time_stamp)
-        if len(self.history) > 0 and note_name == self.history[-1]:
-            return
         self.history.append(note_name)
         if is_within_same_chord and len(self.chord_history) > 0:
             self.chord_history[-1].append(note_name)
@@ -52,7 +49,7 @@ class MidiHistoryManager(object):
             self.history.pop(0)
         if len(self.chord_history) > self.history_length:
             self.chord_history.pop(0)
-        print(self.chord_history)
+        print(self.chord_history[-1])
         if self.controller is not None:
             self.controller.check(self.history, self.chord_history)
 
