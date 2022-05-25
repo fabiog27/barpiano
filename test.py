@@ -1,6 +1,6 @@
 import time
 
-from devices.coffemaker import CoffeeMaker, COFFEE_1_SEQUENCE
+from devices.coffeemaker import CoffeeMaker, COFFEE_1_SEQUENCE
 
 COFFEE_GPIO_PIN = 17
 COFFEE_ARDUINO_IDENTIFIER = '/dev/cu.usbserial-142220'

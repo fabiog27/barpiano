@@ -1,5 +1,5 @@
 from controller import Controller
-from devices.coffemaker import CoffeeMaker
+from devices.coffeemaker import CoffeeMaker
 from midimon import midimon
 
 COFFEE_ARDUINO_IDENTIFIER = '/dev/ttyACM0'
