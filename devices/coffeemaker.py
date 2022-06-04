@@ -7,7 +7,13 @@ from typing import List
 
 from devices.device import Device
 
-COFFEE_1_SEQUENCE = ['C', 'A', 'F', 'E']
+POWER_SEQUENCE = ['G', 'E', 'D#', 'A', 'E', 'D#', 'D#']  # GESAESS
+CLEAN_SEQUENCE = ['A#', 'A', 'C', 'B']  # BACH
+COFFEE_1_SEQUENCE = ['C', 'A', 'F', 'E']  # DUH
+COFFEE_2_SEQUENCE = [['C', 'C'], ['A', 'A'], ['F', 'F'], ['E', 'E']]  # DUH
+ESPRESSO_1_SEQUENCE = ['E', 'D#', 'A#', 'E', 'D#', 'D#']  # Esb(r)ess(o)
+ESPRESSO_2_SEQUENCE = [['E', 'E'], ['D#', 'D#'], ['A#', 'A#'], ['E', 'E'], ['D#', 'D#'], ['D#', 'D#']]  # Double that
+STEAM_SEQUENCE = ['D', 'D#', 'C', 'B']  # DSCH
 
 
 class CoffeeMaker(Device):
@@ -37,7 +43,17 @@ class CoffeeMaker(Device):
     STEAM_TIME = 60
 
     def __init__(self, serial_identifier: str):
-        super().__init__('Coffee Maker', note_sequences=[COFFEE_1_SEQUENCE], chord_sequences=[])
+        super().__init__(
+            'Coffee Maker',
+            note_sequences=[
+                POWER_SEQUENCE,
+                ESPRESSO_1_SEQUENCE,
+                CLEAN_SEQUENCE,
+                COFFEE_1_SEQUENCE,
+                STEAM_SEQUENCE,
+            ],
+            chord_sequences=[ESPRESSO_2_SEQUENCE, COFFEE_2_SEQUENCE]
+        )
         self.serial_connection = serial.Serial(serial_identifier, baudrate=9600, timeout=0.5)
         self.power_button = gpiozero.Button(self.POWER_BUTTON_PIN)
         self.espresso_button = gpiozero.Button(self.ESPRESSO_BUTTON_PIN)
@@ -58,9 +74,34 @@ class CoffeeMaker(Device):
     def trigger(self, note_sequence: List[str], chord_sequence: List[List[str]]) -> None:
         action = None
         wait_time = None
-        if note_sequence == COFFEE_1_SEQUENCE:
+        if note_sequence == POWER_SEQUENCE:
+            action = CoffeeMaker.POWER_ACTION
+            wait_time = CoffeeMaker.POWER_TIME
+            print('POWER')
+        elif note_sequence == ESPRESSO_1_SEQUENCE:
+            action = CoffeeMaker.ESPRESSO_ACTION
+            wait_time = CoffeeMaker.ESPRESSO_TIME
+            print('ESPRESSO_1_SEQUENCE')
+        elif chord_sequence == ESPRESSO_2_SEQUENCE:
+            action = CoffeeMaker.DOUBLE_ESPRESSO_ACTION
+            wait_time = CoffeeMaker.DOUBLE_ESPRESSO_TIME
+            print('ESPRESSO_2_SEQUENCE')
+        elif note_sequence == CLEAN_SEQUENCE:
+            action = CoffeeMaker.CLEAN_ACTION
+            wait_time = CoffeeMaker.CLEAN_TIME
+            print('CLEAN_SEQUENCE')
+        elif note_sequence == COFFEE_1_SEQUENCE:
             action = CoffeeMaker.COFFEE_ACTION
             wait_time = CoffeeMaker.COFFEE_TIME
+            print('COFFEE_1_SEQUENCE')
+        elif chord_sequence == COFFEE_2_SEQUENCE:
+            action = CoffeeMaker.DOUBLE_COFFEE_ACTION
+            print('COFFEE_2_SEQUENCE')
+            wait_time = CoffeeMaker.DOUBLE_COFFEE_TIME
+        elif note_sequence == STEAM_SEQUENCE:
+            action = CoffeeMaker.STEAM_ACTION
+            wait_time = CoffeeMaker.STEAM_TIME
+            print('STEAM_SEQUENCE')
         if action is not None and wait_time is not None:
             try:
                 self.trigger_arduino(action)
