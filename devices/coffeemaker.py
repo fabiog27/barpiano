@@ -7,7 +7,7 @@ from typing import List
 
 from devices.device import Device
 
-POWER_SEQUENCE = ['G', 'E', 'D#', 'A', 'E', 'D#', 'D#']  # GESAESS
+POWER_SEQUENCE = ['A', 'C', 'D', 'C']  # DUH
 CLEAN_SEQUENCE = ['A#', 'A', 'C', 'B']  # BACH
 COFFEE_1_SEQUENCE = ['C', 'A', 'F', 'E']  # DUH
 COFFEE_2_SEQUENCE = [['C', 'C'], ['A', 'A'], ['F', 'F'], ['E', 'E']]  # DUH
@@ -34,13 +34,7 @@ class CoffeeMaker(Device):
     COFFEE_ACTION = 'coffee'
     STEAM_ACTION = 'steam'
 
-    POWER_TIME = 70
-    ESPRESSO_TIME = 60
-    DOUBLE_ESPRESSO_TIME = 60
-    CLEAN_TIME = 60
-    DOUBLE_COFFEE_TIME = 60
-    COFFEE_TIME = 60
-    STEAM_TIME = 60
+    WAIT_TIME = 1
 
     def __init__(self, serial_identifier: str):
         super().__init__(
@@ -73,48 +67,39 @@ class CoffeeMaker(Device):
 
     def trigger(self, note_sequence: List[str], chord_sequence: List[List[str]]) -> None:
         action = None
-        wait_time = None
         if note_sequence == POWER_SEQUENCE:
             action = CoffeeMaker.POWER_ACTION
-            wait_time = CoffeeMaker.POWER_TIME
             print('POWER')
         elif note_sequence == ESPRESSO_1_SEQUENCE:
             action = CoffeeMaker.ESPRESSO_ACTION
-            wait_time = CoffeeMaker.ESPRESSO_TIME
             print('ESPRESSO_1_SEQUENCE')
         elif chord_sequence == ESPRESSO_2_SEQUENCE:
             action = CoffeeMaker.DOUBLE_ESPRESSO_ACTION
-            wait_time = CoffeeMaker.DOUBLE_ESPRESSO_TIME
             print('ESPRESSO_2_SEQUENCE')
         elif note_sequence == CLEAN_SEQUENCE:
             action = CoffeeMaker.CLEAN_ACTION
-            wait_time = CoffeeMaker.CLEAN_TIME
             print('CLEAN_SEQUENCE')
         elif note_sequence == COFFEE_1_SEQUENCE:
             action = CoffeeMaker.COFFEE_ACTION
-            wait_time = CoffeeMaker.COFFEE_TIME
             print('COFFEE_1_SEQUENCE')
         elif chord_sequence == COFFEE_2_SEQUENCE:
             action = CoffeeMaker.DOUBLE_COFFEE_ACTION
             print('COFFEE_2_SEQUENCE')
-            wait_time = CoffeeMaker.DOUBLE_COFFEE_TIME
         elif note_sequence == STEAM_SEQUENCE:
             action = CoffeeMaker.STEAM_ACTION
-            wait_time = CoffeeMaker.STEAM_TIME
             print('STEAM_SEQUENCE')
-        if action is not None and wait_time is not None:
+        if action is not None:
             try:
                 self.trigger_arduino(action)
             except RuntimeError:
                 self.finish()
                 return
-            time.sleep(wait_time)
+            time.sleep(CoffeeMaker.WAIT_TIME)
         self.finish()
 
     def start_up(self) -> bool:
         try:
             self.trigger_arduino(CoffeeMaker.POWER_ACTION)
-            time.sleep(CoffeeMaker.POWER_TIME)
             return True
         except RuntimeError:
             return False
@@ -122,7 +107,6 @@ class CoffeeMaker(Device):
     def shut_down(self) -> bool:
         try:
             self.trigger_arduino(CoffeeMaker.POWER_ACTION)
-            time.sleep(CoffeeMaker.POWER_TIME)
             return True
         except RuntimeError:
             return False
