@@ -1,4 +1,5 @@
 import sys
+from helpers.chordmatcher import do_chords_sequences_match
 import threading
 
 from typing import List
@@ -12,12 +13,6 @@ class Device(object):
             note_sequences: List[List[str]],
             chord_sequences: List[List[List[str]]],
     ):
-        """
-        :param name:
-        :param gpio_pin_number:
-        :param duration:
-        :param note_sequence:
-        """
         self.times_run = 0
         self.is_running = False
         self.note_sequences = note_sequences
@@ -51,13 +46,14 @@ class Device(object):
                 return note_sequence
         return []
 
-    def check_chord_history(self, chord_history: List[List[str]]) -> bool:
+    def check_chord_history(self, chord_history: List[List[str]]) -> List[List[str]]:
         for chord_sequence in self.chord_sequences:
             if len(chord_history) < len(chord_sequence):
                 continue
-            if chord_history[-len(chord_sequence):] == chord_sequence:
-                return True
-        return False
+            relevant_history = chord_history[-len(chord_sequence):]
+            if do_chords_sequences_match(relevant_history, chord_sequence):
+                return chord_sequence
+        return []
 
     def finish(self):
         self.times_run += 1
