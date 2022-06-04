@@ -18,8 +18,9 @@ class Controller(object):
     def check(self, note_history: List[str], chord_history: List[List[str]]):
         is_trigger = self.is_trigger_chord_sequence(chord_history)
 
-        if not self.is_in_bar_mode and is_trigger:
-            self.start_bar_mode()
+        if not self.is_in_bar_mode:
+            if is_trigger:
+                self.start_bar_mode()
             return
         elif self.is_in_bar_mode and is_trigger:
             self.end_bar_mode()
@@ -39,11 +40,7 @@ class Controller(object):
     def start_bar_mode(self):
         print('Starting bar mode')
         self.is_in_bar_mode = True
-        for device in self.devices:
-            device.start_up()
 
     def end_bar_mode(self):
         print('Ending bar mode')
         self.is_in_bar_mode = False
-        for device in self.devices:
-            device.shut_down()
