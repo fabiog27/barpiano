@@ -61,7 +61,8 @@ void executeAction(String action) {
     simulateButtonPress(COFFEE_1_PIN);
     Serial.println("Pressed button: One coffee");
   } else if (action.equals("steam")) {
-    Serial.println("Error: Steam not supported yet");
+    simulateButtonPress(STEAM_PIN);
+    Serial.println("Pressed button: Steam");
   } else {
     Serial.print("Error: Unknown action ");
     Serial.print(action);
