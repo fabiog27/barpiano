@@ -66,6 +66,12 @@ class Device(object):
     def trigger(self, note_sequence, chord_sequence):
         pass
 
+    def on_engage_bar_mode(self) -> None:
+        pass
+
+    def on_disengage_bar_mode(self) -> None:
+        pass
+
     def start_up(self) -> bool:
         pass
 
