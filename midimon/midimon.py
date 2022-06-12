@@ -50,6 +50,7 @@ class MidiHistoryManager(object):
         if len(self.chord_history) > self.history_length:
             self.chord_history.pop(0)
         print(self.chord_history[-1])
+        sys.stdout.flush()
         if self.controller is not None:
             self.controller.check(self.history, self.chord_history)
 
