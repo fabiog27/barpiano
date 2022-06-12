@@ -42,8 +42,12 @@ class Controller(object):
         print('Starting bar mode')
         sys.stdout.flush()
         self.is_in_bar_mode = True
+        for device in self.devices:
+            device.on_engage_bar_mode()
 
     def end_bar_mode(self):
         print('Ending bar mode')
         sys.stdout.flush()
         self.is_in_bar_mode = False
+        for device in self.devices:
+            device.on_disengage_bar_mode()
