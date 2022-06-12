@@ -1,6 +1,7 @@
 from devices.device import Device
 import gpiozero
 import time
+import sys
 
 from typing import List
 
@@ -20,9 +21,12 @@ class Lock(Device):
         self.release_lock()
 
     def release_lock(self) -> None:
+        print('Releasing lock')
         self.lock_trigger.on()
         time.sleep(self.TRIGGER_TIME_MS / 1000)
         self.lock_trigger.off()
+        print('Lock released')
+        sys.stdout.flush()
 
     def trigger(self, note_sequence: List[str], chord_sequence: List[List[str]]) -> None:
         if note_sequence == ACCESS_SEQUENCE:
