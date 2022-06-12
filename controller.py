@@ -1,3 +1,4 @@
+import sys
 from typing import List
 
 from devices.device import Device
@@ -39,8 +40,10 @@ class Controller(object):
 
     def start_bar_mode(self):
         print('Starting bar mode')
+        sys.stdout.flush()
         self.is_in_bar_mode = True
 
     def end_bar_mode(self):
         print('Ending bar mode')
+        sys.stdout.flush()
         self.is_in_bar_mode = False
