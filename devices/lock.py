@@ -31,3 +31,4 @@ class Lock(Device):
     def trigger(self, note_sequence: List[str], chord_sequence: List[List[str]]) -> None:
         if note_sequence == ACCESS_SEQUENCE:
             self.release_lock()
+            self.finish()
