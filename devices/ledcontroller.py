@@ -7,6 +7,7 @@ import neopixel
 PIXEL_AMOUNT = 296
 NOTE_AMOUNT = 78
 
+SINGLE_LED_NOTE_AMOUNT = 16
 NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
 KIK_BLUE = (0, 64, 192)
@@ -41,6 +42,13 @@ class LEDController(object):
         octave = split_note[1]
         if octave == 1:
             return [NOTES.index(short_name)]
+        if octave == 2:
+            index = NOTES.index(short_name)
+            if index < 4:
+                return [11 + index]
+            else:
+                first_pixel = 15 + 2 * (index - 3)
+
         else:
-            first_pixel = 12 + 2 * (12 * (octave - 2) + NOTES.index(short_name))
+            first_pixel = 2 * ((12 * (octave - 1)) - 1 + NOTES.index(short_name)) - 15
             return [first_pixel, first_pixel + 1]
