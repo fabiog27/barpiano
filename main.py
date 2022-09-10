@@ -1,5 +1,6 @@
 from controller import Controller
 from devices.coffeemaker import CoffeeMaker
+from devices.ledcontroller import LEDController
 from devices.lock import Lock
 from midimon import midimon
 
@@ -14,4 +15,6 @@ if __name__ == '__main__':
     controller.add_device(coffee_maker)
     controller.add_device(lock)
     midimon.register_controller(controller)
+    led_controller = LEDController()
+    midimon.register_led_controller(led_controller)
     midimon.start_monitor()

@@ -19,6 +19,7 @@ from typing import List, Optional
 
 from controller import Controller
 from devices.device import Device
+from devices.ledcontroller import LEDController
 
 
 class MidiHistoryManager(object):
@@ -30,10 +31,32 @@ class MidiHistoryManager(object):
         self.chord_history: List[List[str]] = []
         self.history_length: int = 20
         self.controller: Optional[Controller] = None
+        self.led_controller: Optional[LEDController] = None
         self.chord_timestamp = 0
+        self.active_notes: List[str] = []
 
     def set_controller(self, controller: Controller):
         self.controller = controller
+
+    def set_led_controller(self, led_controller: LEDController):
+        self.led_controller = led_controller
+
+    def activate_note(self, full_note_name):
+        if full_note_name not in self.active_notes:
+            self.active_notes.append(full_note_name)
+            if self.led_controller is not None:
+                self.led_controller.update_active_notes(self.active_notes)
+
+    def deactivate_note(self, full_note_name):
+        try:
+            index = self.active_notes.index(full_note_name)
+            self.active_notes.pop(index)
+            print('Deactivated', full_note_name, 'at', index)
+            if self.led_controller is not None:
+                self.led_controller.update_active_notes(self.active_notes)
+        except ValueError:
+            print('Error: trying to deactivate note ', full_note_name, ', not found', sep='')
+            return
 
     def add_note_to_history(self, note_name):
         time_stamp = time.time_ns() / 10 ** 6
@@ -63,6 +86,13 @@ def register_controller(controller: Controller):
     print('---------------------------------------------------------')
     print('register controller')
     history_manager.set_controller(controller)
+
+
+def register_led_controller(led_controller: LEDController):
+    global history_manager
+    print('---------------------------------------------------------')
+    print('register LED controller')
+    history_manager.set_led_controller(led_controller)
 
 
 print("\n# Watch the messages on screen:\n"
@@ -251,7 +281,7 @@ def MidiCallback(mididev, message, time_stamp):
     status = message[0]
     msglen = len(message)
     data1 = message[1] if msglen > 1 else 0
-    data2 = message[2] if msglen > 2 else 0
+    data2 = message[2] if msglen > 2 else 0 # velocity
     dataval = "0x{:04X}".format(data1 + data2 * 256)
 
     if status in systemmsg:
@@ -269,8 +299,12 @@ def MidiCallback(mididev, message, time_stamp):
         if messagetype == 9:  # note off/on
             note_name = midinote2notename(data1, 1)
             short_name = note_name["short_name"]
-            if messagechannel == 1 and data2 != 0:
-                history_manager.add_note_to_history(short_name)
+            if messagechannel == 1:
+                if data2 != 0:
+                    history_manager.activate_note(note_name["full_name"])
+                    history_manager.add_note_to_history(short_name)
+                else:
+                    history_manager.deactivate_note(note_name["full_name"])
             spec = "%d=%s, velocity=%d" % (data1, note_name["full_name"], data2)
         elif messagetype == 10:  # Polyphonic aftertouch
             note_name = midinote2notename(data1, 1)
