@@ -5,7 +5,6 @@ import board
 import neopixel
 
 PIXEL_AMOUNT = 296
-SINGLE_PIXEL_NOTE_AMOUNT = 12
 NOTE_AMOUNT = 78
 
 NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
@@ -43,5 +42,5 @@ class LEDController(object):
         if octave == 1:
             return [NOTES.index(short_name)]
         else:
-            first_pixel = 12 + 2 * (12 * (octave - 1) + NOTES.index(short_name))
+            first_pixel = 12 + 2 * (12 * (octave - 2) + NOTES.index(short_name))
             return [first_pixel, first_pixel + 1]
