@@ -8,7 +8,7 @@ from constants.colors import MELLOW_WHITE, KIK_BLUE, KIK_ORANGE, ACTIVE_GREEN, M
 from helpers.notes import NOTES
 from helpers.serial_connection import send_arduino_message
 
-PIXEL_AMOUNT = 296
+PIXEL_AMOUNT = 288
 NOTE_AMOUNT = 78
 
 DOUBLE_LED_NOTE_AMOUNT = 16
