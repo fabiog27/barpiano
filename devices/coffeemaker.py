@@ -34,7 +34,7 @@ class CoffeeMaker(Device):
     COFFEE_ACTION = 'coffee'
     STEAM_ACTION = 'steam'
 
-    WAIT_TIME = 30
+    COFFEE_WAIT_TIME = 53
 
     def __init__(self, serial_identifier: str):
         super().__init__(
@@ -105,11 +105,11 @@ class CoffeeMaker(Device):
                 send_arduino_message(self.serial_connection, message)
                 if self.led_controller is not None:
                     self.led_controller.show_success_flash()
-                    self.led_controller.show_loading_sequence(CoffeeMaker.WAIT_TIME)
+                    self.led_controller.show_loading_sequence(CoffeeMaker.COFFEE_WAIT_TIME)
             except RuntimeError:
                 self.finish()
                 return
-            time.sleep(CoffeeMaker.WAIT_TIME)
+            time.sleep(CoffeeMaker.COFFEE_WAIT_TIME)
         self.finish()
 
     def start_up(self) -> bool:
