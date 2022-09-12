@@ -1,11 +1,11 @@
 import time
 import serial
 import gpiozero
-import sys
 
-from typing import List
+from typing import List, Optional
 
 from devices.device import Device
+from devices.ledcontroller import LEDController
 from helpers.serial_connection import send_arduino_message
 
 POWER_SEQUENCE = ['A', 'C', 'D', 'C']  # DUH
@@ -34,7 +34,7 @@ class CoffeeMaker(Device):
     COFFEE_ACTION = 'coffee'
     STEAM_ACTION = 'steam'
 
-    WAIT_TIME = 1
+    WAIT_TIME = 30
 
     def __init__(self, serial_identifier: str):
         super().__init__(
@@ -48,6 +48,8 @@ class CoffeeMaker(Device):
             ],
             chord_sequences=[ESPRESSO_2_SEQUENCE, COFFEE_2_SEQUENCE]
         )
+        self.led_controller: Optional[LEDController] = None
+
         self.serial_connection = serial.Serial(serial_identifier, baudrate=9600, timeout=0.5)
         self.power_button = gpiozero.Button(self.POWER_BUTTON_PIN)
         self.espresso_button = gpiozero.Button(self.ESPRESSO_BUTTON_PIN)
@@ -70,6 +72,9 @@ class CoffeeMaker(Device):
         )
         self.coffee_button.when_released = lambda: send_arduino_message(self.serial_connection, self.COFFEE_ACTION)
         self.steam_button.when_released = lambda: send_arduino_message(self.serial_connection, self.STEAM_ACTION)
+
+    def set_led_controller(self, led_controller: LEDController):
+        self.led_controller = led_controller
 
     def trigger(self, note_sequence: List[str], chord_sequence: List[List[str]]) -> None:
         action = None
@@ -96,7 +101,11 @@ class CoffeeMaker(Device):
             print('STEAM_SEQUENCE')
         if action is not None:
             try:
-                send_arduino_message(self.serial_connection, action)
+                message = '{"action":"' + action + '"}'
+                send_arduino_message(self.serial_connection, message)
+                if self.led_controller is not None:
+                    self.led_controller.show_success_flash()
+                    self.led_controller.show_loading_sequence(CoffeeMaker.WAIT_TIME)
             except RuntimeError:
                 self.finish()
                 return

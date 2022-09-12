@@ -21,7 +21,7 @@ void setup() {
   Serial.setTimeout(1);
   FastLED.addLeds<CHIP_SET, RGB_PIN, COLOR_CODE>(LEDs, RGB_LED_NUM);
   FastLED.setBrightness(BRIGHTNESS);
-  FastLED.setMaxPowerInVoltsAndMilliamps(5, 500);
+  FastLED.setMaxPowerInVoltsAndMilliamps(5, 7000);
   FastLED.clear();
   FastLED.show();
 }
@@ -82,12 +82,14 @@ void loop() {
     int rAsNum = convertCharArrayToInt(r);
     int gAsNum = convertCharArrayToInt(g);
     int bAsNum = convertCharArrayToInt(b);
+    /*
     Serial.println("Update LEDs");
     Serial.println(startIndexAsNum);
     Serial.println(endIndexAsNum);
     Serial.println(rAsNum);
     Serial.println(gAsNum);
     Serial.println(bAsNum);
+    */
     updateLEDs(startIndexAsNum, endIndexAsNum, rAsNum, gAsNum, bAsNum);
     message = "";
   }

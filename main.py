@@ -1,3 +1,5 @@
+import time
+
 from controller import Controller
 from devices.coffeemaker import CoffeeMaker
 from devices.ledcontroller import LEDController
@@ -19,5 +21,6 @@ if __name__ == '__main__':
     led_controller = LEDController(
         serial_identifier=LED_ARDUINO_IDENTIFIER,
     )
+    coffee_maker.set_led_controller(led_controller)
     midimon.register_led_controller(led_controller)
     midimon.start_monitor()
