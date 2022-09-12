@@ -22,7 +22,7 @@ KIK_ORANGE = (255, 134, 0)
 class LEDController(object):
 
     def __init__(self, serial_identifier: str):
-        self.serial_connection = serial.Serial(serial_identifier, baudrate=921600, timeout=0.001)
+        self.serial_connection = serial.Serial(serial_identifier, baudrate=230400, timeout=0.001)
         self.note_splitter = re.compile(r"([A-Z]#?)(\d)")
         self.init_leds()
 

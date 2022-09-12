@@ -17,7 +17,7 @@ byte  a, b, c;
 String message;
 
 void setup() {
-  Serial.begin(921600);
+  Serial.begin(230400);
   Serial.setTimeout(1);
   FastLED.addLeds<CHIP_SET, RGB_PIN, COLOR_CODE>(LEDs, RGB_LED_NUM);
   FastLED.setBrightness(BRIGHTNESS);
