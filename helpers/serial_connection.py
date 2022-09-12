@@ -4,6 +4,6 @@ import serial
 
 
 def send_arduino_message(serial_identifier: str, message: str):
-    serial_connection = serial.Serial(serial_identifier, baudrate=9600, timeout=0.001)
+    serial_connection = serial.Serial(serial_identifier, baudrate=9600, timeout=0.01)
     encoded_message = message.encode('ascii')
     serial_connection.write(encoded_message)
