@@ -18,7 +18,6 @@ import sys
 from typing import List, Optional
 
 from controller import Controller
-from devices.device import Device
 from devices.ledcontroller import LEDController
 
 
