@@ -30,14 +30,7 @@ void setupPin(int number) {
 void loop() {
   String message = Serial.readString();
   if (message.length() > 0) {
-    DeserializationError error = deserializeJson(jsonDoc, message);
-    if (error) {
-      Serial.print("Error: deserializeJson failed: \n");
-      Serial.print(error.f_str());
-      Serial.print("\n");
-    }
-    const String action = jsonDoc["action"];
-    executeAction(action);
+    executeAction(message);
   }
 }
 

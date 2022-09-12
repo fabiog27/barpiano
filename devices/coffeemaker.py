@@ -6,6 +6,7 @@ import sys
 from typing import List
 
 from devices.device import Device
+from helpers.serial_connection import send_arduino_message
 
 POWER_SEQUENCE = ['A', 'C', 'D', 'C']  # DUH
 CLEAN_SEQUENCE = ['A#', 'A', 'C', 'B']  # BACH
@@ -17,7 +18,6 @@ STEAM_SEQUENCE = ['D', 'D#', 'C', 'B']  # DSCH
 
 
 class CoffeeMaker(Device):
-
     POWER_BUTTON_PIN = 17
     ESPRESSO_BUTTON_PIN = 27
     DOUBLE_ESPRESSO_BUTTON_PIN = 22
@@ -48,7 +48,7 @@ class CoffeeMaker(Device):
             ],
             chord_sequences=[ESPRESSO_2_SEQUENCE, COFFEE_2_SEQUENCE]
         )
-        self.serial_connection = serial.Serial(serial_identifier, baudrate=9600, timeout=0.5)
+        self.serial_identifier = serial_identifier
         self.power_button = gpiozero.Button(self.POWER_BUTTON_PIN)
         self.espresso_button = gpiozero.Button(self.ESPRESSO_BUTTON_PIN)
         self.double_espresso_button = gpiozero.Button(self.DOUBLE_ESPRESSO_BUTTON_PIN)
@@ -57,13 +57,19 @@ class CoffeeMaker(Device):
         self.coffee_button = gpiozero.Button(self.COFFEE_BUTTON_PIN)
         self.steam_button = gpiozero.Button(self.STEAM_BUTTON_PIN)
 
-        self.power_button.when_released = lambda: self.trigger_arduino(self.POWER_ACTION)
-        self.espresso_button.when_released = lambda: self.trigger_arduino(self.ESPRESSO_ACTION)
-        self.double_espresso_button.when_released = lambda: self.trigger_arduino(self.DOUBLE_ESPRESSO_ACTION)
-        self.clean_button.when_released = lambda: self.trigger_arduino(self.CLEAN_ACTION)
-        self.double_coffee_button.when_released = lambda: self.trigger_arduino(self.DOUBLE_COFFEE_ACTION)
-        self.coffee_button.when_released = lambda: self.trigger_arduino(self.COFFEE_ACTION)
-        self.steam_button.when_released = lambda: self.trigger_arduino(self.STEAM_ACTION)
+        self.power_button.when_released = lambda: send_arduino_message(self.serial_identifier, self.POWER_ACTION)
+        self.espresso_button.when_released = lambda: send_arduino_message(self.serial_identifier, self.ESPRESSO_ACTION)
+        self.double_espresso_button.when_released = lambda: send_arduino_message(
+            self.serial_identifier,
+            self.DOUBLE_ESPRESSO_ACTION
+        )
+        self.clean_button.when_released = lambda: send_arduino_message(self.serial_identifier, self.CLEAN_ACTION)
+        self.double_coffee_button.when_released = lambda: send_arduino_message(
+            self.serial_identifier,
+            self.DOUBLE_COFFEE_ACTION
+        )
+        self.coffee_button.when_released = lambda: send_arduino_message(self.serial_identifier, self.COFFEE_ACTION)
+        self.steam_button.when_released = lambda: send_arduino_message(self.serial_identifier, self.STEAM_ACTION)
 
     def trigger(self, note_sequence: List[str], chord_sequence: List[List[str]]) -> None:
         action = None
@@ -90,7 +96,7 @@ class CoffeeMaker(Device):
             print('STEAM_SEQUENCE')
         if action is not None:
             try:
-                self.trigger_arduino(action)
+                send_arduino_message(self.serial_identifier, action)
             except RuntimeError:
                 self.finish()
                 return
@@ -99,28 +105,14 @@ class CoffeeMaker(Device):
 
     def start_up(self) -> bool:
         try:
-            self.trigger_arduino(CoffeeMaker.POWER_ACTION)
+            send_arduino_message(self.serial_identifier, CoffeeMaker.POWER_ACTION)
             return True
         except RuntimeError:
             return False
 
     def shut_down(self) -> bool:
         try:
-            self.trigger_arduino(CoffeeMaker.POWER_ACTION)
+            send_arduino_message(self.serial_identifier, CoffeeMaker.POWER_ACTION)
             return True
         except RuntimeError:
             return False
-
-    def trigger_arduino(self, action):
-        message = ('{"action":"' + action + '"}').encode('ascii')
-        self.serial_connection.write(message)
-        response_part = self.serial_connection.readline().decode('ascii')
-        response = response_part
-        response_part = self.serial_connection.readline().decode('ascii')
-        while response_part != '':
-            response += response_part
-            response_part = self.serial_connection.readline().decode('ascii')
-        print(response)
-        sys.stdout.flush()
-        if 'Error' in response:
-            raise RuntimeError('Can\'t run coffee machine:\n' + response)

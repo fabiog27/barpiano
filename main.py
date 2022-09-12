@@ -5,6 +5,7 @@ from devices.lock import Lock
 from midimon import midimon
 
 COFFEE_ARDUINO_IDENTIFIER = '/dev/ttyUSB0'
+LED_ARDUINO_IDENTIFIER = '/dev/ttyUSB1'
 
 if __name__ == '__main__':
     coffee_maker = CoffeeMaker(
@@ -15,6 +16,8 @@ if __name__ == '__main__':
     controller.add_device(coffee_maker)
     controller.add_device(lock)
     midimon.register_controller(controller)
-    led_controller = LEDController()
+    led_controller = LEDController(
+        serial_identifier=LED_ARDUINO_IDENTIFIER,
+    )
     midimon.register_led_controller(led_controller)
     midimon.start_monitor()

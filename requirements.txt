@@ -1,5 +1,3 @@
 gpiozero~=1.6.2
 rtmidi2~=1.1.0
 pyserial~=3.5
-rpi_ws281x~=4.3.4
-adafruit-circuitpython-neopixel~=6.3.6

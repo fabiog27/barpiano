@@ -45,7 +45,7 @@ class MidiHistoryManager(object):
         if full_note_name not in self.active_notes:
             self.active_notes.append(full_note_name)
             if self.led_controller is not None:
-                self.led_controller.update_active_notes(self.active_notes)
+                self.led_controller.activate_note(full_note_name)
 
     def deactivate_note(self, full_note_name):
         try:
@@ -53,7 +53,7 @@ class MidiHistoryManager(object):
             self.active_notes.pop(index)
             print('Deactivated', full_note_name, 'at', index)
             if self.led_controller is not None:
-                self.led_controller.update_active_notes(self.active_notes)
+                self.led_controller.deactivate_note(full_note_name)
         except ValueError:
             print('Error: trying to deactivate note ', full_note_name, ', not found', sep='')
             return

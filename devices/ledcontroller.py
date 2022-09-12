@@ -1,13 +1,16 @@
 import re
 from typing import List
 
-import board
-import neopixel
+from helpers.serial_connection import send_arduino_message
 
 PIXEL_AMOUNT = 296
 NOTE_AMOUNT = 78
 
-SINGLE_LED_NOTE_AMOUNT = 16
+DOUBLE_LED_NOTE_AMOUNT = 16
+FIRST_OCTAVE_PIXEL_COUNT = 12 * 2
+SECOND_OCTAVE_DOUBLE_LED_PIXEL_COUNT = (DOUBLE_LED_NOTE_AMOUNT - 12) * 2
+SECOND_OCTAVE_PIXEL_COUNT = SECOND_OCTAVE_DOUBLE_LED_PIXEL_COUNT + (12 - (DOUBLE_LED_NOTE_AMOUNT - 12)) * 4
+NORMAL_OCTAVE_PIXEL_COUNT = 12 * 4
 NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
 KIK_BLUE = (0, 64, 192)
@@ -16,39 +19,45 @@ KIK_ORANGE = (255, 134, 0)
 
 class LEDController(object):
 
-    def __init__(self):
-        self.pixels = neopixel.NeoPixel(board.D6, PIXEL_AMOUNT)
-        self.active_notes: List[str] = []
+    def __init__(self, serial_identifier: str):
+        self.serial_identifier = serial_identifier
         self.note_splitter = re.compile(r"([A-Z]#?)(\d)")
-        self.update_leds()
+        self.init_leds()
 
-    def update_active_notes(self, active_notes: List[str]):
-        self.active_notes = active_notes
-        self.update_leds()
+    def activate_note(self, full_note_name):
+        corresponding_leds = self.map_note_to_pixel_numbers(full_note_name)
+        for led_num in corresponding_leds:
+            message = '%d %d %d %d'.format(led_num, KIK_ORANGE[0], KIK_ORANGE[1], KIK_ORANGE[2])
+            send_arduino_message(self.serial_identifier, message)
 
-    def update_leds(self):
-        active_leds: List[int] = []
-        for active_note in self.active_notes:
-            active_leds.extend(self.map_note_to_pixel_numbers(active_note))
+    def deactivate_note(self, full_note_name):
+        corresponding_leds = self.map_note_to_pixel_numbers(full_note_name)
+        for led_num in corresponding_leds:
+            message = '%d %d %d %d'.format(led_num, KIK_BLUE[0], KIK_BLUE[1], KIK_BLUE[2])
+            send_arduino_message(self.serial_identifier, message)
+
+    def init_leds(self):
         for i in range(PIXEL_AMOUNT):
-            if i in active_leds:
-                self.pixels[i] = KIK_ORANGE
-            else:
-                self.pixels[i] = KIK_BLUE
+            message = '%d %d %d %d'.format(i, KIK_BLUE[0], KIK_BLUE[1], KIK_BLUE[2])
+            send_arduino_message(self.serial_identifier, message)
 
     def map_note_to_pixel_numbers(self, full_note_name) -> List[int]:
         split_note = self.note_splitter.match(full_note_name).groups()
         short_name = split_note[0]
         octave = split_note[1]
         if octave == 1:
-            return [NOTES.index(short_name)]
+            first_pixel = 2 * NOTES.index(short_name)
+            return [first_pixel, first_pixel + 1]
         if octave == 2:
             index = NOTES.index(short_name)
             if index < 4:
-                return [11 + index]
+                first_pixel = FIRST_OCTAVE_PIXEL_COUNT + 2 * index
+                return [first_pixel, first_pixel + 1]
             else:
-                first_pixel = 15 + 2 * (index - 3)
+                first_pixel = FIRST_OCTAVE_PIXEL_COUNT + SECOND_OCTAVE_DOUBLE_LED_PIXEL_COUNT + 4 * (index - 4)
+                return [first_pixel + i for i in range(4)]
 
         else:
-            first_pixel = 2 * ((12 * (octave - 1)) - 1 + NOTES.index(short_name)) - 15
-            return [first_pixel, first_pixel + 1]
+            first_pixel = FIRST_OCTAVE_PIXEL_COUNT + SECOND_OCTAVE_PIXEL_COUNT + (
+                        octave - 3) * 4 * 12 + 4 * NOTES.index(short_name)
+            return [first_pixel + i for i in range(4)]
