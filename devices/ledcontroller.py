@@ -38,7 +38,7 @@ class LEDController(object):
 
     def init_leds(self):
         for i in range(PIXEL_AMOUNT):
-            message = '%d %d %d %d'.format(i, KIK_BLUE[0], KIK_BLUE[1], KIK_BLUE[2])
+            message = '{:03d} {:03d} {:03d} {:03d}'.format(i, KIK_BLUE[0], KIK_BLUE[1], KIK_BLUE[2])
             send_arduino_message(self.serial_identifier, message)
 
     def map_note_to_pixel_numbers(self, full_note_name) -> List[int]:
@@ -61,3 +61,7 @@ class LEDController(object):
             first_pixel = FIRST_OCTAVE_PIXEL_COUNT + SECOND_OCTAVE_PIXEL_COUNT + (
                         octave - 3) * 4 * 12 + 4 * NOTES.index(short_name)
             return [first_pixel + i for i in range(4)]
+
+if __name__ == '__main__':
+    serial_identifier = '/dev/cu.usbserial-143230'
+    led_controller = LEDController(serial_identifier=serial_identifier)

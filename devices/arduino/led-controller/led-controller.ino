@@ -12,10 +12,11 @@ CRGB LEDs[RGB_LED_NUM];
 
 // define 3 byte for the random color
 byte  a, b, c;
-#define UPDATES_PER_SECOND 1000
+#define UPDATES_PER_SECOND 100
 
 void setup() {
   Serial.begin(9600);
+  Serial.setTimeout(1);
   FastLED.addLeds<CHIP_SET, RGB_PIN, COLOR_CODE>(LEDs, RGB_LED_NUM);
   FastLED.setBrightness(BRIGHTNESS);
   FastLED.setMaxPowerInVoltsAndMilliamps(5, 500);
@@ -24,45 +25,87 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available() > 0) {
+  if (Serial.available() >= 15) {
     String message = Serial.readString();
     Serial.print(message);
-    Serial.print("\n");
+    Serial.println("Reading message");
     int length = message.length();
-    char index[3];
-    char r[3];
-    char g[3];
-    char b[4];
+    char index[3] = {'0', '0', '0'};
+    char r[3] = {'0', '0', '0'};
+    char g[3] = {'0', '0', '0'};
+    char b[4] = {'0', '0', '0'};
     byte stage = 0;
+    byte tempPos = 0;
     for (int i = 0; i < length; i++) {
       char currentChar = message.charAt(i);
       if (currentChar == ' ') {
         stage++;
+        tempPos = 0;
+        continue;
       }
       switch (stage) {
         case 0:
-          index[i] = currentChar;
+          index[tempPos] = currentChar;
           break;
         case 1:
-          r[i] = currentChar;
+          r[tempPos] = currentChar;
           break;
         case 2:
-          g[i] = currentChar;
+          g[tempPos] = currentChar;
           break;
         case 3:
-          b[i] = currentChar;
+          b[tempPos] = currentChar;
           break;
       }
+      tempPos++;
     }
-    int indexAsNum = index[0] * 100 + index[1] * 10 + index[2];
-    byte rAsNum = r[0] * 100 + r[1] * 10 + r[2];
-    byte gAsNum = g[0] * 100 + g[1] * 10 + g[2];
-    byte bAsNum = b[0] * 100 + b[1] * 10 + b[2];
+    Serial.print("index: ");
+    printChars(index);
+    Serial.print(" r ");
+    printChars(r);
+    Serial.print(" g ");
+    printChars(g);
+    Serial.print(" b ");
+    printChars(b);
+    Serial.print("\n");
+    int indexAsNum = convertCharArrayToInt(index);
+    int rAsNum = convertCharArrayToInt(r);
+    int gAsNum = convertCharArrayToInt(g);
+    int bAsNum = convertCharArrayToInt(b);
+    Serial.print("update LED\n");
+    Serial.println(indexAsNum);
+    Serial.println(rAsNum);
+    Serial.println(gAsNum);
+    Serial.println(bAsNum);
     updateLED(indexAsNum, rAsNum, gAsNum, bAsNum);
   }
 }
 
-void updateLED(int index, byte r, byte g, byte b) {
+void printChars(char * chars) {
+  for (int i = 0; i < 3; i++) {
+    Serial.print(chars[i]);
+  }
+}
+
+int convertCharArrayToInt(char * chars) {
+  int total = 0;
+  bool shouldAdd = 0;
+  int multiplier = 100;
+  for (byte i = 0; i < 3; i++) {
+    byte value = chars[i] - 48;
+    if (value != 0) {
+      shouldAdd = 1;
+    }
+    if (shouldAdd) {
+      total += multiplier * value;
+    }
+    multiplier /= 10;
+  }
+  return total;
+}
+
+
+void updateLED(int index, int r, int g, int b) {
   LEDs[index] = CRGB(r, g, b);
   FastLED.show();
 }
