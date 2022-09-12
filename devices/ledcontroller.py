@@ -26,7 +26,7 @@ class LEDController(object):
 
     def activate_note(self, full_note_name):
         corresponding_leds = self.map_note_to_pixel_numbers(full_note_name)
-        message = '{:03d} {:03d} {:03d} {:03d} {:03d}'.format(
+        message = 'A{:03d} {:03d} {:03d} {:03d} {:03d}Z'.format(
             corresponding_leds[0],
             corresponding_leds[-1],
             KIK_ORANGE[0],
@@ -37,7 +37,7 @@ class LEDController(object):
 
     def deactivate_note(self, full_note_name):
         corresponding_leds = self.map_note_to_pixel_numbers(full_note_name)
-        message = '{:03d} {:03d} {:03d} {:03d} {:03d}'.format(
+        message = 'A{:03d} {:03d} {:03d} {:03d} {:03d}Z'.format(
             corresponding_leds[0],
             corresponding_leds[-1],
             KIK_BLUE[0],
@@ -47,7 +47,7 @@ class LEDController(object):
         send_arduino_message(self.serial_identifier, message)
 
     def init_leds(self):
-        message = '{:03d} {:03d} {:03d} {:03d} {:03d}'.format(
+        message = 'A{:03d} {:03d} {:03d} {:03d} {:03d}Z'.format(
             0,
             PIXEL_AMOUNT - 1,
             KIK_BLUE[0],

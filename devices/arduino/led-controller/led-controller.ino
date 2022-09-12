@@ -12,7 +12,9 @@ CRGB LEDs[RGB_LED_NUM];
 
 // define 3 byte for the random color
 byte  a, b, c;
-#define UPDATES_PER_SECOND 100
+#define UPDATES_PER_SECOND 1000
+
+String message;
 
 void setup() {
   Serial.begin(9600);
@@ -25,9 +27,24 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available() >= 19) {
-    String message = Serial.readString();
+  if (Serial.available() > 0) {
+    message = message + Serial.readString();
     int length = message.length();
+    if (message.charAt(0) != 'A') {
+      Serial.println("Error: message should start with A");
+      Serial.println(message);
+      message = "";
+      return;
+    }
+    if (length < 21) {
+      return;
+    }
+    if (length > 21 || message.charAt(20) != 'Z') {
+      Serial.println("Error: ill-formatted message");
+      Serial.println(message);
+      message = "";
+      return;
+    }
     char startIndex[3] = {'0', '0', '0'};
     char endIndex[3] = {'0', '0', '0'};
     char r[3] = {'0', '0', '0'};
@@ -35,15 +52,12 @@ void loop() {
     char b[4] = {'0', '0', '0'};
     byte stage = 0;
     byte tempPos = 0;
-    for (int i = 0; i < length; i++) {
+    for (int i = 1; i < length - 1; i++) {
       char currentChar = message.charAt(i);
       if (currentChar == ' ') {
         stage++;
         tempPos = 0;
         continue;
-      }
-      if (currentChar == '\0') {
-        break;
       }
       switch (stage) {
         case 0:
@@ -76,6 +90,7 @@ void loop() {
     Serial.println(gAsNum);
     Serial.println(bAsNum);
     updateLEDs(startIndexAsNum, endIndexAsNum, rAsNum, gAsNum, bAsNum);
+    message = "";
   }
 }
 
