@@ -17,7 +17,7 @@ byte  a, b, c;
 String message;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(921600);
   Serial.setTimeout(1);
   FastLED.addLeds<CHIP_SET, RGB_PIN, COLOR_CODE>(LEDs, RGB_LED_NUM);
   FastLED.setBrightness(BRIGHTNESS);
@@ -83,12 +83,6 @@ void loop() {
     int rAsNum = convertCharArrayToInt(r);
     int gAsNum = convertCharArrayToInt(g);
     int bAsNum = convertCharArrayToInt(b);
-    Serial.print("update LED\n");
-    Serial.println(startIndexAsNum);
-    Serial.println(endIndexAsNum);
-    Serial.println(rAsNum);
-    Serial.println(gAsNum);
-    Serial.println(bAsNum);
     updateLEDs(startIndexAsNum, endIndexAsNum, rAsNum, gAsNum, bAsNum);
     message = "";
   }

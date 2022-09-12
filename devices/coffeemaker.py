@@ -48,7 +48,7 @@ class CoffeeMaker(Device):
             ],
             chord_sequences=[ESPRESSO_2_SEQUENCE, COFFEE_2_SEQUENCE]
         )
-        self.serial_identifier = serial_identifier
+        self.serial_connection = serial.Serial(serial_identifier, baudrate=9600, timeout=0.5)
         self.power_button = gpiozero.Button(self.POWER_BUTTON_PIN)
         self.espresso_button = gpiozero.Button(self.ESPRESSO_BUTTON_PIN)
         self.double_espresso_button = gpiozero.Button(self.DOUBLE_ESPRESSO_BUTTON_PIN)
@@ -57,19 +57,19 @@ class CoffeeMaker(Device):
         self.coffee_button = gpiozero.Button(self.COFFEE_BUTTON_PIN)
         self.steam_button = gpiozero.Button(self.STEAM_BUTTON_PIN)
 
-        self.power_button.when_released = lambda: send_arduino_message(self.serial_identifier, self.POWER_ACTION)
-        self.espresso_button.when_released = lambda: send_arduino_message(self.serial_identifier, self.ESPRESSO_ACTION)
+        self.power_button.when_released = lambda: send_arduino_message(self.serial_connection, self.POWER_ACTION)
+        self.espresso_button.when_released = lambda: send_arduino_message(self.serial_connection, self.ESPRESSO_ACTION)
         self.double_espresso_button.when_released = lambda: send_arduino_message(
-            self.serial_identifier,
+            self.serial_connection,
             self.DOUBLE_ESPRESSO_ACTION
         )
-        self.clean_button.when_released = lambda: send_arduino_message(self.serial_identifier, self.CLEAN_ACTION)
+        self.clean_button.when_released = lambda: send_arduino_message(self.serial_connection, self.CLEAN_ACTION)
         self.double_coffee_button.when_released = lambda: send_arduino_message(
-            self.serial_identifier,
+            self.serial_connection,
             self.DOUBLE_COFFEE_ACTION
         )
-        self.coffee_button.when_released = lambda: send_arduino_message(self.serial_identifier, self.COFFEE_ACTION)
-        self.steam_button.when_released = lambda: send_arduino_message(self.serial_identifier, self.STEAM_ACTION)
+        self.coffee_button.when_released = lambda: send_arduino_message(self.serial_connection, self.COFFEE_ACTION)
+        self.steam_button.when_released = lambda: send_arduino_message(self.serial_connection, self.STEAM_ACTION)
 
     def trigger(self, note_sequence: List[str], chord_sequence: List[List[str]]) -> None:
         action = None
@@ -96,7 +96,7 @@ class CoffeeMaker(Device):
             print('STEAM_SEQUENCE')
         if action is not None:
             try:
-                send_arduino_message(self.serial_identifier, action)
+                send_arduino_message(self.serial_connection, action)
             except RuntimeError:
                 self.finish()
                 return
@@ -105,14 +105,14 @@ class CoffeeMaker(Device):
 
     def start_up(self) -> bool:
         try:
-            send_arduino_message(self.serial_identifier, CoffeeMaker.POWER_ACTION)
+            send_arduino_message(self.serial_connection, CoffeeMaker.POWER_ACTION)
             return True
         except RuntimeError:
             return False
 
     def shut_down(self) -> bool:
         try:
-            send_arduino_message(self.serial_identifier, CoffeeMaker.POWER_ACTION)
+            send_arduino_message(self.serial_connection, CoffeeMaker.POWER_ACTION)
             return True
         except RuntimeError:
             return False

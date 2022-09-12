@@ -1,6 +1,8 @@
 import re
 from typing import List
 
+import serial
+
 from helpers.serial_connection import send_arduino_message
 
 PIXEL_AMOUNT = 296
@@ -20,7 +22,7 @@ KIK_ORANGE = (255, 134, 0)
 class LEDController(object):
 
     def __init__(self, serial_identifier: str):
-        self.serial_identifier = serial_identifier
+        self.serial_connection = serial.Serial(serial_identifier, baudrate=921600, timeout=0.001)
         self.note_splitter = re.compile(r"([A-Z]#?)(\d)")
         self.init_leds()
 
@@ -33,7 +35,7 @@ class LEDController(object):
             KIK_ORANGE[1],
             KIK_ORANGE[2]
         )
-        send_arduino_message(self.serial_identifier, message)
+        send_arduino_message(self.serial_connection, message)
 
     def deactivate_note(self, full_note_name):
         corresponding_leds = self.map_note_to_pixel_numbers(full_note_name)
@@ -44,7 +46,7 @@ class LEDController(object):
             KIK_BLUE[1],
             KIK_BLUE[2]
         )
-        send_arduino_message(self.serial_identifier, message)
+        send_arduino_message(self.serial_connection, message)
 
     def init_leds(self):
         message = 'A{:03d} {:03d} {:03d} {:03d} {:03d}Z'.format(
@@ -54,7 +56,7 @@ class LEDController(object):
             KIK_BLUE[1],
             KIK_BLUE[2],
         )
-        send_arduino_message(self.serial_identifier, message)
+        send_arduino_message(self.serial_connection, message)
 
     def map_note_to_pixel_numbers(self, full_note_name) -> List[int]:
         split_note = self.note_splitter.match(full_note_name).groups()
