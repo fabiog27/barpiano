@@ -17,8 +17,9 @@ import sys
 
 from typing import List, Optional
 
-from controller import Controller
-from devices.ledcontroller import LEDController
+from controllers.history_controller import HistoryController
+from controllers.led_controller import LEDController
+from controllers.single_note_controller import SingleNoteController
 
 
 class MidiHistoryManager(object):
@@ -29,28 +30,33 @@ class MidiHistoryManager(object):
         self.history: List[str] = []
         self.chord_history: List[List[str]] = []
         self.history_length: int = 20
-        self.controller: Optional[Controller] = None
+        self.history_controller: Optional[HistoryController] = None
         self.led_controller: Optional[LEDController] = None
+        self.single_note_controller: Optional[SingleNoteController] = None
         self.chord_timestamp = 0
         self.active_notes: List[str] = []
 
-    def set_controller(self, controller: Controller):
-        self.controller = controller
+    def set_history_controller(self, history_controller: HistoryController):
+        self.history_controller = history_controller
 
     def set_led_controller(self, led_controller: LEDController):
         self.led_controller = led_controller
+
+    def set_single_note_controller(self, single_note_controller: SingleNoteController):
+        self.single_note_controller = single_note_controller
 
     def activate_note(self, full_note_name):
         if full_note_name not in self.active_notes:
             self.active_notes.append(full_note_name)
             if self.led_controller is not None:
                 self.led_controller.activate_note(full_note_name)
+            if self.single_note_controller is not None:
+                self.single_note_controller.handle_note(full_note_name)
 
     def deactivate_note(self, full_note_name):
         try:
             index = self.active_notes.index(full_note_name)
             self.active_notes.pop(index)
-            print('Deactivated', full_note_name, 'at', index)
             if self.led_controller is not None:
                 self.led_controller.deactivate_note(full_note_name)
         except ValueError:
@@ -73,18 +79,18 @@ class MidiHistoryManager(object):
             self.chord_history.pop(0)
         print(self.chord_history[-1])
         sys.stdout.flush()
-        if self.controller is not None:
-            self.controller.check(self.history, self.chord_history)
+        if self.history_controller is not None:
+            self.history_controller.check(self.history, self.chord_history)
 
 
 history_manager = MidiHistoryManager()
 
 
-def register_controller(controller: Controller):
+def register_controller(controller: HistoryController):
     global history_manager
     print('---------------------------------------------------------')
-    print('register controller')
-    history_manager.set_controller(controller)
+    print('register history controller')
+    history_manager.set_history_controller(controller)
 
 
 def register_led_controller(led_controller: LEDController):
@@ -92,6 +98,13 @@ def register_led_controller(led_controller: LEDController):
     print('---------------------------------------------------------')
     print('register LED controller')
     history_manager.set_led_controller(led_controller)
+
+
+def register_single_note_controller(single_note_controller: SingleNoteController):
+    global history_manager
+    print('---------------------------------------------------------')
+    print('register single note controller')
+    history_manager.set_single_note_controller(single_note_controller)
 
 
 print("\n# Watch the messages on screen:\n"

@@ -4,6 +4,8 @@ from typing import List, Tuple
 
 import serial
 
+from constants.colors import MELLOW_WHITE, KIK_BLUE, KIK_ORANGE, ACTIVE_GREEN, MOLE
+from helpers.notes import NOTES
 from helpers.serial_connection import send_arduino_message
 
 PIXEL_AMOUNT = 296
@@ -14,12 +16,7 @@ FIRST_OCTAVE_PIXEL_COUNT = 12 * 2
 SECOND_OCTAVE_DOUBLE_LED_PIXEL_COUNT = (DOUBLE_LED_NOTE_AMOUNT - 12) * 2
 SECOND_OCTAVE_PIXEL_COUNT = SECOND_OCTAVE_DOUBLE_LED_PIXEL_COUNT + (12 - (DOUBLE_LED_NOTE_AMOUNT - 12)) * 4
 NORMAL_OCTAVE_PIXEL_COUNT = 12 * 4
-NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
-MELLOW_WHITE = (10, 10, 10)
-KIK_BLUE = (0, 0, 3)
-KIK_ORANGE = (255, 80, 0)
-ACTIVE_GREEN = (3, 220, 3)
 
 class LEDController(object):
 
@@ -43,6 +40,10 @@ class LEDController(object):
     def show_success_flash(self):
         self.blink(ACTIVE_GREEN, MELLOW_WHITE)
 
+    def show_failure_flash(self):
+        self.blink(MOLE, MELLOW_WHITE, 10, 0.1)
+        self.init_leds(KIK_BLUE)
+
     def blink(self, color_a: Tuple[int, int, int], color_b: Tuple[int, int, int], times=3, interval=0.2):
         for i in range(times):
             self.init_leds(color_a)
@@ -50,16 +51,19 @@ class LEDController(object):
             self.init_leds(color_b)
             time.sleep(interval)
 
-    def activate_note(self, full_note_name):
+    def set_note_to(self, full_note_name, color: Tuple[int, int, int]):
         corresponding_leds = self.map_note_to_pixel_numbers(full_note_name)
         message = self.message_template.format(
             corresponding_leds[0],
             corresponding_leds[-1],
-            KIK_ORANGE[0],
-            KIK_ORANGE[1],
-            KIK_ORANGE[2]
+            color[0],
+            color[1],
+            color[2]
         )
         send_arduino_message(self.serial_connection, message)
+
+    def activate_note(self, full_note_name):
+        self.set_note_to(full_note_name, KIK_ORANGE)
 
     def deactivate_note(self, full_note_name):
         corresponding_leds = self.map_note_to_pixel_numbers(full_note_name)
@@ -102,10 +106,3 @@ class LEDController(object):
             first_pixel = FIRST_OCTAVE_PIXEL_COUNT + SECOND_OCTAVE_PIXEL_COUNT + (
                     octave - 3) * 4 * 12 + 4 * NOTES.index(short_name)
             return [first_pixel + i for i in range(4)]
-
-
-if __name__ == '__main__':
-    serial_identifier = '/dev/cu.usbserial-143220'
-    led_controller = LEDController(serial_identifier=serial_identifier)
-    led_controller.activate_note('G7')
-    print('go ahead')

@@ -5,7 +5,7 @@ import gpiozero
 from typing import List, Optional
 
 from devices.device import Device
-from devices.ledcontroller import LEDController
+from controllers.led_controller import LEDController
 from helpers.serial_connection import send_arduino_message
 
 POWER_SEQUENCE = ['A', 'C', 'D', 'C']  # DUH

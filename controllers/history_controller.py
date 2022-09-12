@@ -5,7 +5,7 @@ from devices.device import Device
 from helpers.chordmatcher import do_chords_sequences_match
 
 
-class Controller(object):
+class HistoryController(object):
     BAR_MODE_CHORD_SEQUENCE = [['D', 'E'], ['D', 'E'], ['G', 'A']]
 
     def __init__(self):
