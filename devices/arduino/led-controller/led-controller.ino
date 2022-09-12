@@ -17,7 +17,7 @@ byte  a, b, c;
 String message;
 
 void setup() {
-  Serial.begin(230400);
+  Serial.begin(921600);
   Serial.setTimeout(1);
   FastLED.addLeds<CHIP_SET, RGB_PIN, COLOR_CODE>(LEDs, RGB_LED_NUM);
   FastLED.setBrightness(BRIGHTNESS);
@@ -28,7 +28,7 @@ void setup() {
 
 void loop() {
   if (Serial.available() > 0) {
-    message = message + Serial.readString();
+    message = message + Serial.readStringUntil('X');
     int length = message.length();
     if (message.charAt(0) != 'A') {
       Serial.println("Error: message should start with A");
@@ -36,10 +36,10 @@ void loop() {
       message = "";
       return;
     }
-    if (length < 21) {
+    if (length < 17) {
       return;
     }
-    if (length > 21 || message.charAt(20) != 'Z') {
+    if (length > 17 || message.charAt(16) != 'Z') {
       Serial.println("Error: ill-formatted message");
       Serial.println(message);
       message = "";
@@ -54,10 +54,9 @@ void loop() {
     byte tempPos = 0;
     for (int i = 1; i < length - 1; i++) {
       char currentChar = message.charAt(i);
-      if (currentChar == ' ') {
+      if (i > 1 && (i - 1) % 3 == 0) {
         stage++;
         tempPos = 0;
-        continue;
       }
       switch (stage) {
         case 0:
@@ -83,6 +82,12 @@ void loop() {
     int rAsNum = convertCharArrayToInt(r);
     int gAsNum = convertCharArrayToInt(g);
     int bAsNum = convertCharArrayToInt(b);
+    Serial.println("Update LEDs");
+    Serial.println(startIndexAsNum);
+    Serial.println(endIndexAsNum);
+    Serial.println(rAsNum);
+    Serial.println(gAsNum);
+    Serial.println(bAsNum);
     updateLEDs(startIndexAsNum, endIndexAsNum, rAsNum, gAsNum, bAsNum);
     message = "";
   }
