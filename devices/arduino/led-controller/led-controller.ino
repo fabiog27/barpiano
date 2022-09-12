@@ -25,12 +25,11 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available() >= 15) {
+  if (Serial.available() >= 19) {
     String message = Serial.readString();
-    Serial.print(message);
-    Serial.println("Reading message");
     int length = message.length();
-    char index[3] = {'0', '0', '0'};
+    char startIndex[3] = {'0', '0', '0'};
+    char endIndex[3] = {'0', '0', '0'};
     char r[3] = {'0', '0', '0'};
     char g[3] = {'0', '0', '0'};
     char b[4] = {'0', '0', '0'};
@@ -43,41 +42,40 @@ void loop() {
         tempPos = 0;
         continue;
       }
+      if (currentChar == '\0') {
+        break;
+      }
       switch (stage) {
         case 0:
-          index[tempPos] = currentChar;
+          startIndex[tempPos] = currentChar;
           break;
         case 1:
-          r[tempPos] = currentChar;
+          endIndex[tempPos] = currentChar;
           break;
         case 2:
-          g[tempPos] = currentChar;
+          r[tempPos] = currentChar;
           break;
         case 3:
+          g[tempPos] = currentChar;
+          break;
+        case 4:
           b[tempPos] = currentChar;
           break;
       }
       tempPos++;
     }
-    Serial.print("index: ");
-    printChars(index);
-    Serial.print(" r ");
-    printChars(r);
-    Serial.print(" g ");
-    printChars(g);
-    Serial.print(" b ");
-    printChars(b);
-    Serial.print("\n");
-    int indexAsNum = convertCharArrayToInt(index);
+    int startIndexAsNum = convertCharArrayToInt(startIndex);
+    int endIndexAsNum = convertCharArrayToInt(endIndex);
     int rAsNum = convertCharArrayToInt(r);
     int gAsNum = convertCharArrayToInt(g);
     int bAsNum = convertCharArrayToInt(b);
     Serial.print("update LED\n");
-    Serial.println(indexAsNum);
+    Serial.println(startIndexAsNum);
+    Serial.println(endIndexAsNum);
     Serial.println(rAsNum);
     Serial.println(gAsNum);
     Serial.println(bAsNum);
-    updateLED(indexAsNum, rAsNum, gAsNum, bAsNum);
+    updateLEDs(startIndexAsNum, endIndexAsNum, rAsNum, gAsNum, bAsNum);
   }
 }
 
@@ -105,8 +103,10 @@ int convertCharArrayToInt(char * chars) {
 }
 
 
-void updateLED(int index, int r, int g, int b) {
-  LEDs[index] = CRGB(r, g, b);
+void updateLEDs(int startIndex, int endIndex, int r, int g, int b) {
+  for (int i = startIndex; i <= endIndex; i++) {
+    LEDs[i] = CRGB(r, g, b);
+  }
   FastLED.show();
 }
 
