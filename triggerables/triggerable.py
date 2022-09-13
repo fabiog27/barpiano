@@ -5,7 +5,7 @@ import threading
 from typing import List
 
 
-class Device(object):
+class Triggerable(object):
 
     def __init__(
             self,
@@ -70,10 +70,4 @@ class Device(object):
         pass
 
     def on_disengage_bar_mode(self) -> None:
-        pass
-
-    def start_up(self) -> bool:
-        pass
-
-    def shut_down(self) -> bool:
         pass

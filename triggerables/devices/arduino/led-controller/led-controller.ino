@@ -15,6 +15,7 @@ byte  a, b, c;
 #define UPDATES_PER_SECOND 1000
 
 String message;
+bool shouldShowDebugInfo = false;
 
 void setup() {
   Serial.begin(921600);
@@ -82,14 +83,14 @@ void loop() {
     int rAsNum = convertCharArrayToInt(r);
     int gAsNum = convertCharArrayToInt(g);
     int bAsNum = convertCharArrayToInt(b);
-    /*
-    Serial.println("Update LEDs");
-    Serial.println(startIndexAsNum);
-    Serial.println(endIndexAsNum);
-    Serial.println(rAsNum);
-    Serial.println(gAsNum);
-    Serial.println(bAsNum);
-    */
+    if (shouldShowDebugInfo) {
+      Serial.println("Update LEDs");
+      Serial.println(startIndexAsNum);
+      Serial.println(endIndexAsNum);
+      Serial.println(rAsNum);
+      Serial.println(gAsNum);
+      Serial.println(bAsNum);
+    }
     updateLEDs(startIndexAsNum, endIndexAsNum, rAsNum, gAsNum, bAsNum);
     message = "";
   }

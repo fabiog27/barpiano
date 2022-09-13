@@ -17,13 +17,12 @@ import sys
 
 from typing import List, Optional
 
-from controllers.history_controller import HistoryController
-from controllers.led_controller import LEDController
-from controllers.single_note_controller import SingleNoteController
+from notecontrollers.history_controller import HistoryController
+from ledcontroller.led_controller import LEDController
+from notecontrollers.single_note_controller import SingleNoteController
 
 
 class MidiHistoryManager(object):
-
     CHORD_THRESHOLD_MS = 60
 
     def __init__(self):
@@ -107,25 +106,26 @@ def register_single_note_controller(single_note_controller: SingleNoteController
     history_manager.set_single_note_controller(single_note_controller)
 
 
-print("\n# Watch the messages on screen:\n"
-      "#  - is the expected midi device opened ?\n"
-      "#  - if you play your midi device, do you see this ?\n"
-      "#\n# This monitor's logic is similar to samplerbox\n"
-      "#\n# So: if you see signals received here, but get no sound,\n"
-      "#     it's not because your MIDI device isn't recognized by SB.\n"
-      "#     If you see nothing, also try with the -v option\n"
-      "#\n# ctrl-C ends (as usual...)\n"
-      "#\n# optional commandline parameters for opening through port(s)\n"
-      "#    -t <midi-out port enclosed in parenthesis>\n"
-      "#       you can use multiple -t\n"
-      "#    -a opens all available output ports\n"
-      "#    -e opens/defines embedded serial output as extra device\n"
-      "#       and disables replaces any real MIDI serial device as output\n"
-      "#    optional extras:\n"
-      "#    -r Accept realtime messages via serialreads\n"
-      "#    -s Accept sysex messages via serialreads\n"
-      "#    -v Verbose: show parameters passed to call-back and serialreads\n"
-      )
+print(
+    "\n# Watch the messages on screen:\n"
+    "#  - is the expected midi device opened ?\n"
+    "#  - if you play your midi device, do you see this ?\n"
+    "#\n# This monitor's logic is similar to samplerbox\n"
+    "#\n# So: if you see signals received here, but get no sound,\n"
+    "#     it's not because your MIDI device isn't recognized by SB.\n"
+    "#     If you see nothing, also try with the -v option\n"
+    "#\n# ctrl-C ends (as usual...)\n"
+    "#\n# optional commandline parameters for opening through port(s)\n"
+    "#    -t <midi-out port enclosed in parenthesis>\n"
+    "#       you can use multiple -t\n"
+    "#    -a opens all available output ports\n"
+    "#    -e opens/defines embedded serial output as extra device\n"
+    "#       and disables replaces any real MIDI serial device as output\n"
+    "#    optional extras:\n"
+    "#    -r Accept realtime messages via serialreads\n"
+    "#    -s Accept sysex messages via serialreads\n"
+    "#    -v Verbose: show parameters passed to call-back and serialreads\n"
+)
 
 verbose = False
 realtime = False
@@ -266,8 +266,8 @@ def midinote2notename(midinote, fractions):
     return {'full_name': notename, 'short_name': name}
 
 
-def checklength(definition, gotlen):
-    if (gotlen != definition[0]):
+def check_length(definition, gotlen):
+    if gotlen != definition[0]:
         print(" ==> %s is defined as %d bytes, but message has %d bytes" % (definition[1], definition[0], gotlen))
 
 
@@ -293,17 +293,17 @@ def MidiCallback(mididev, message, time_stamp):
     status = message[0]
     msglen = len(message)
     data1 = message[1] if msglen > 1 else 0
-    data2 = message[2] if msglen > 2 else 0 # velocity
+    data2 = message[2] if msglen > 2 else 0  # velocity
     dataval = "0x{:04X}".format(data1 + data2 * 256)
 
     if status in systemmsg:
         spec = "%d" % dataval if systemmsg[status][0] > 0 else ""
         print('"%s", %d bytes -> %s, message %s' % (mididev, msglen, systemmsg[status][1], spec))
-        checklength(systemmsg[status], msglen)
+        check_length(systemmsg[status], msglen)
     elif status in realtimsg:
         if realtime:
             print('"%s", %d bytes -> %s' % (mididev, msglen, realtimsg[status][1]))
-            checklength(realtimsg[status], msglen)
+            check_length(realtimsg[status], msglen)
     else:
         messagetype = status >> 4
         messagechannel = (status & 0xF) + 1  # make channel# human..
@@ -324,7 +324,7 @@ def MidiCallback(mididev, message, time_stamp):
         elif messagetype == 12:  # Program change
             spec = '%d (=%d for humans)' % (data1, data1 + 1)
         elif messagetype == 13:  # Channel aftertouch
-            spec = 'pressure=%d' % (data1)
+            spec = 'pressure=%d' % data1
         elif messagetype == 14:  # Pitchbend
             spec = '%s (SB uses %d)' % (dataval, data2)
         elif messagetype == 11:  # control change (CC = Continuous Controllers)
@@ -335,7 +335,7 @@ def MidiCallback(mididev, message, time_stamp):
         else:
             spec = "%s" % dataval
         # print('"%s" (%d bytes) Channel %d, %s %s' % (mididev, msglen, messagechannel, messages[messagetype][1], spec))
-        checklength(messages[messagetype], msglen)
+        check_length(messages[messagetype], msglen)
 
 
 #################################################################
@@ -402,7 +402,7 @@ class IO:
                 print("Serialread: %d=%s" % (data, "0x{:02X}".format(data)))
             #### in midimon only !! ####
 
-            if (data >> 7):  # status byte = beginning of a midi message
+            if data >> 7:  # status byte = beginning of a midi message
 
                 if data in realtimsg:  # send real time messages immediately
                     if self.realtime:  # if they are wanted, otherwise just ignore
@@ -423,7 +423,7 @@ class IO:
 
                     if len(message):  # Did we collect any stuff
                         # Just send as it can be undefined messages or plain errors, decision up to receiver
-                        # For simplicity sake, SysEx without EndofSysEx is considered an error
+                        # For simplicity's sake, SysEx without EndofSysEx is considered an error
                         self.midicallback(mididev=self.uart, message=message, time_stamp=None)
                         message = []  # Start a new message
 
@@ -493,7 +493,7 @@ print_sensing("out", out_ports)
 
 thru_ports = set(thru_ports)
 
-if (len(thru_ports) > 0):
+if len(thru_ports) > 0:
     i = 1
     allvalid = "All" in thru_ports
 
@@ -507,10 +507,6 @@ if (len(thru_ports) > 0):
                 if re.search(v, midiserial.uart):
                     outports[midiserial.uart] = [midiserial.uart, midiserial]
                     break
-
-    # if use_midiserial:
-    #    if allvalid:
-    # for port in thru_ports:
 
     for port in rtmidi2.get_out_ports():
         if ('Midi Through' not in port
@@ -533,7 +529,7 @@ if (len(thru_ports) > 0):
                     print('Opened "%s" as %s ' % (port, outport))
                     i += 1
                 except:
-                    print('No active device on "%s"' % (port))
+                    print('No active device on "%s"' % port)
                     del outports[outport]
 
 
@@ -543,7 +539,7 @@ def start_monitor():
     try:
         while True:
             curr_inports = rtmidi2.get_in_ports()
-            if (len(prev_inports) != len(curr_inports)):
+            if len(prev_inports) != len(curr_inports):
                 midi_in.close_ports()
                 prev_ports = []
                 i = 0

@@ -3,10 +3,10 @@ import time
 from threading import Thread, Lock
 from typing import List, Optional
 
-from constants.colors import MOLE, ACTIVE_GREEN, MELLOW_WHITE
-from controllers.led_controller import LEDController
-from devices.device import Device
+from constants.theme import Theme
+from ledcontroller.led_controller import LEDController
 from helpers.notes import get_full_note_name_from_position
+from triggerables.triggerable import Triggerable
 
 MIN_PLAYABLE = 'E2'
 MAX_PLAYABLE = 'F7'
@@ -19,7 +19,7 @@ MAX_LIVES = 16
 TRIGGER_SEQUENCE = ['A#', 'A', 'C', 'C', 'C']  # BACCC
 
 
-class WhackAMole(Device):
+class WhackAMole(Triggerable):
 
     def __init__(self, led_controller: LEDController):
         super().__init__('WhackAMole', note_sequences=[TRIGGER_SEQUENCE], chord_sequences=[])
@@ -49,9 +49,9 @@ class WhackAMole(Device):
 
     def update_lives(self):
         for i in range(16):
-            color = ACTIVE_GREEN
+            color = Theme.active_color
             if i >= self.lives:
-                color = MELLOW_WHITE
+                color = Theme.inactive_color
             self.led_controller.set_note_to(get_full_note_name_from_position(i), color)
 
     def background_task(self):
@@ -78,7 +78,7 @@ class WhackAMole(Device):
         while position in self.moles:
             position = random.randint(START_INDEX, END_INDEX)
         self.moles.append(position)
-        self.led_controller.set_note_to(get_full_note_name_from_position(position), MOLE)
+        self.led_controller.set_note_to(get_full_note_name_from_position(position), Theme.mole_color)
         print('spawned', position)
 
     def try_to_whack_mole(self, position):

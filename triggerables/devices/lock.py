@@ -1,14 +1,15 @@
-from devices.device import Device
 import gpiozero
 import time
 import sys
 
 from typing import List
 
+from triggerables.triggerable import Triggerable
+
 ACCESS_SEQUENCE = ['A', 'C', 'C', 'E', 'D#', 'D#']  # Access
 
 
-class Lock(Device):
+class Lock(Triggerable):
 
     GPIO_PIN = 20
     TRIGGER_TIME_MS = 1000

@@ -1,9 +1,9 @@
-from controllers.history_controller import HistoryController
-from controllers.single_note_controller import SingleNoteController
-from devices.coffeemaker import CoffeeMaker
-from controllers.led_controller import LEDController
-from devices.lock import Lock
-from games.whackamole import WhackAMole
+from notecontrollers.history_controller import HistoryController
+from notecontrollers.single_note_controller import SingleNoteController
+from triggerables.devices.coffeemaker import CoffeeMaker
+from ledcontroller.led_controller import LEDController
+from triggerables.devices.lock import Lock
+from triggerables.games.whackamole import WhackAMole
 from midimon import midimon
 
 COFFEE_ARDUINO_IDENTIFIER = '/dev/ttyUSB0'
@@ -21,9 +21,9 @@ if __name__ == '__main__':
     )
     whack_a_mole = WhackAMole(led_controller)
     controller = HistoryController()
-    controller.add_device(whack_a_mole)
-    controller.add_device(coffee_maker)
-    controller.add_device(lock)
+    controller.add_triggerable(whack_a_mole)
+    controller.add_triggerable(coffee_maker)
+    controller.add_triggerable(lock)
     midimon.register_controller(controller)
     single_note_controller = SingleNoteController(whack_a_mole)
     coffee_maker.set_led_controller(led_controller)

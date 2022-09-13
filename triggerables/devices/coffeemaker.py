@@ -4,9 +4,9 @@ import gpiozero
 
 from typing import List, Optional
 
-from devices.device import Device
-from controllers.led_controller import LEDController
+from ledcontroller.led_controller import LEDController
 from helpers.serial_connection import send_arduino_message
+from triggerables.triggerable import Triggerable
 
 POWER_SEQUENCE = ['A', 'C', 'D', 'C']  # DUH
 CLEAN_SEQUENCE = ['A#', 'A', 'C', 'B']  # BACH
@@ -17,7 +17,7 @@ ESPRESSO_2_SEQUENCE = [['E', 'E'], ['D#', 'D#'], ['A#', 'A#'], ['E', 'E'], ['D#'
 STEAM_SEQUENCE = ['D', 'D#', 'C', 'B']  # DSCH
 
 
-class CoffeeMaker(Device):
+class CoffeeMaker(Triggerable):
     POWER_BUTTON_PIN = 17
     ESPRESSO_BUTTON_PIN = 27
     DOUBLE_ESPRESSO_BUTTON_PIN = 22
@@ -111,17 +111,3 @@ class CoffeeMaker(Device):
                 return
             time.sleep(CoffeeMaker.COFFEE_WAIT_TIME)
         self.finish()
-
-    def start_up(self) -> bool:
-        try:
-            send_arduino_message(self.serial_connection, CoffeeMaker.POWER_ACTION)
-            return True
-        except RuntimeError:
-            return False
-
-    def shut_down(self) -> bool:
-        try:
-            send_arduino_message(self.serial_connection, CoffeeMaker.POWER_ACTION)
-            return True
-        except RuntimeError:
-            return False

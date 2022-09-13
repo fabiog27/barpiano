@@ -1,4 +1,4 @@
-from games.whackamole import WhackAMole
+from triggerables.games.whackamole import WhackAMole
 from helpers.notes import get_position_from_full_note_name
 
 
