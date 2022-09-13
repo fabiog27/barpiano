@@ -46,6 +46,7 @@ class LEDMessageManager(object):
             try:
                 led_message = self.queue.get(block=False)
                 send_arduino_message(self.serial_connection, led_message.build_message())
+                self.queue.task_done()
             except Empty:
                 pass
 
@@ -56,8 +57,8 @@ class LEDMessageManager(object):
 
     def stop(self):
         self.is_running = False
+        self.queue.empty()
         if self.worker_thread is not None:
             self.worker_thread.join()
             self.worker_thread = None
-            self.queue.empty()
-            send_arduino_message(self.serial_connection, LEDMessage.get_reset_message())
+        send_arduino_message(self.serial_connection, LEDMessage.get_reset_message())

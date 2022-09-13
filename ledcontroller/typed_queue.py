@@ -12,3 +12,6 @@ class TypedQueue(Generic[T]):
 
     def empty(self):
         ...
+
+    def task_done(self):
+        ...
