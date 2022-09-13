@@ -40,6 +40,12 @@ class WhackAMole(Game):
         self.thread: Optional[Thread] = None
         self.lock = Lock()
 
+    def reset(self):
+        self.lives = float(MAX_LIVES)
+        self.score = 0
+        self.tick_interval = float(STARTING_INTERVAL)
+        self.moles: List[int] = []
+
     def trigger(self, note_sequence, chord_sequence):
         self.start()
         print('starting whackamole')
@@ -60,6 +66,7 @@ class WhackAMole(Game):
             self.thread = None
         self.finish()
         self.led_controller.show_failure_flash()
+        self.reset()
 
     def update_lives(self):
         for i in range(16):
