@@ -5,28 +5,36 @@ from typing import List, Optional
 
 from constants.theme import Theme
 from ledcontroller.led_controller import LEDController
-from helpers.notes import get_full_note_name_from_position
-from triggerables.triggerable import Triggerable
+from helpers.notes import get_full_note_name_from_position, get_position_from_full_note_name
+from triggerables.games.game import Game
 
 MIN_PLAYABLE = 'E2'
 MAX_PLAYABLE = 'F7'
 
-START_INDEX = 16
-END_INDEX = 77
+START_INDEX = get_position_from_full_note_name(MIN_PLAYABLE)
+END_INDEX = get_position_from_full_note_name(MAX_PLAYABLE)
+
+SCORE_DIFFICULTY_STEP = 3
+DIFFICULTY_STEP_FACTOR = 0.3
 
 MAX_LIVES = 16
+LIFE_LOSS = 1
+LIVES_PER_MOLE = 1.1 * LIFE_LOSS / 6
+
+MOLES_PER_LIFE = 6
+STARTING_INTERVAL = 1 / MOLES_PER_LIFE
+MINIMUM_INTERVAL = 0.1 * STARTING_INTERVAL
 
 TRIGGER_SEQUENCE = ['A#', 'A', 'C', 'C', 'C']  # BACCC
 
 
-class WhackAMole(Triggerable):
+class WhackAMole(Game):
 
     def __init__(self, led_controller: LEDController):
         super().__init__('WhackAMole', note_sequences=[TRIGGER_SEQUENCE], chord_sequences=[])
-        self.lives = MAX_LIVES
+        self.lives = float(MAX_LIVES)
         self.score = 0
-        self.life_interval = 1
-        self.mole_interval = 1
+        self.tick_interval = float(STARTING_INTERVAL)
         self.moles: List[int] = []
         self.led_controller = led_controller
         self.thread: Optional[Thread] = None
@@ -47,29 +55,28 @@ class WhackAMole(Triggerable):
         print('started whackamole')
 
     def stop(self):
-        self.thread = None
+        if self.thread is not None:
+            self.thread.join()
+            self.thread = None
         self.finish()
         self.led_controller.show_failure_flash()
 
     def update_lives(self):
         for i in range(16):
             color = Theme.active_color
-            if i >= self.lives:
+            if i > self.lives:
                 color = Theme.inactive_color
             self.led_controller.set_note_to(get_full_note_name_from_position(i), color)
 
     def background_task(self):
-        should_spawn_mole = True
+        iterations = 0
         while self.is_running:
-            print('background task')
-            time.sleep(self.life_interval)
+            time.sleep(self.tick_interval)
             if self.lock.acquire(blocking=False):
-                self.lives -= 1
-                if should_spawn_mole:
-                    self.spawn_mole()
-                    should_spawn_mole = False
-                else:
-                    should_spawn_mole = True
+                if iterations == MOLES_PER_LIFE:
+                    self.lives -= LIFE_LOSS
+                    iterations = 0
+                self.spawn_mole()
                 self.lock.release()
                 print('lives:', self.lives)
                 self.update_lives()
@@ -93,9 +100,8 @@ class WhackAMole(Triggerable):
             print('whacked', position)
             self.moles.remove(position)
             self.score += 1
-            if self.score % 10 == 0 and self.life_interval > 0.1:
-                self.life_interval -= 0.1
-                self.mole_interval += 0.05
-            if self.lives < 15:
-                self.lives += 2
+            if self.score % SCORE_DIFFICULTY_STEP == 0 and self.tick_interval > MINIMUM_INTERVAL:
+                self.tick_interval *= 1 - DIFFICULTY_STEP_FACTOR
+            if self.lives < MAX_LIVES - LIVES_PER_MOLE:
+                self.lives += LIVES_PER_MOLE
             self.lock.release()
