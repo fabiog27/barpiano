@@ -18,7 +18,6 @@ import sys
 from typing import List, Optional
 
 from notecontrollers.history_controller import HistoryController
-from ledcontroller.led_controller import LEDController
 from notecontrollers.single_note_controller import SingleNoteController
 
 
@@ -30,7 +29,6 @@ class MidiHistoryManager(object):
         self.chord_history: List[List[str]] = []
         self.history_length: int = 20
         self.history_controller: Optional[HistoryController] = None
-        self.led_controller: Optional[LEDController] = None
         self.single_note_controller: Optional[SingleNoteController] = None
         self.chord_timestamp = 0
         self.active_notes: List[str] = []
@@ -38,26 +36,21 @@ class MidiHistoryManager(object):
     def set_history_controller(self, history_controller: HistoryController):
         self.history_controller = history_controller
 
-    def set_led_controller(self, led_controller: LEDController):
-        self.led_controller = led_controller
-
     def set_single_note_controller(self, single_note_controller: SingleNoteController):
         self.single_note_controller = single_note_controller
 
     def activate_note(self, full_note_name):
         if full_note_name not in self.active_notes:
             self.active_notes.append(full_note_name)
-            if self.led_controller is not None:
-                self.led_controller.activate_note(full_note_name)
             if self.single_note_controller is not None:
-                self.single_note_controller.handle_note(full_note_name)
+                self.single_note_controller.activate_note(full_note_name)
 
     def deactivate_note(self, full_note_name):
         try:
             index = self.active_notes.index(full_note_name)
             self.active_notes.pop(index)
-            if self.led_controller is not None:
-                self.led_controller.deactivate_note(full_note_name)
+            if self.single_note_controller is not None:
+                self.single_note_controller.deactivate_note(full_note_name)
         except ValueError:
             print('Error: trying to deactivate note ', full_note_name, ', not found', sep='')
             return
@@ -90,13 +83,6 @@ def register_controller(controller: HistoryController):
     print('---------------------------------------------------------')
     print('register history controller')
     history_manager.set_history_controller(controller)
-
-
-def register_led_controller(led_controller: LEDController):
-    global history_manager
-    print('---------------------------------------------------------')
-    print('register LED controller')
-    history_manager.set_led_controller(led_controller)
 
 
 def register_single_note_controller(single_note_controller: SingleNoteController):

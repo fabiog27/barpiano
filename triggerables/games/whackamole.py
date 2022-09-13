@@ -36,6 +36,10 @@ class WhackAMole(Triggerable):
         self.start()
         print('starting whackamole')
 
+    def activate_note(self, full_note_name):
+        position = get_position_from_full_note_name(full_note_name)
+        self.try_to_whack_mole(position)
+
     def start(self):
         self.update_lives()
         self.thread = Thread(target=self.background_task)

@@ -36,7 +36,7 @@ class CoffeeMaker(Triggerable):
 
     COFFEE_WAIT_TIME = 53
 
-    def __init__(self, serial_identifier: str):
+    def __init__(self, serial_identifier: str, led_controller: LEDController):
         super().__init__(
             'Coffee Maker',
             note_sequences=[
@@ -48,7 +48,7 @@ class CoffeeMaker(Triggerable):
             ],
             chord_sequences=[ESPRESSO_2_SEQUENCE, COFFEE_2_SEQUENCE]
         )
-        self.led_controller: Optional[LEDController] = None
+        self.led_controller = led_controller
 
         self.serial_connection = serial.Serial(serial_identifier, baudrate=9600, timeout=0.5)
         self.power_button = gpiozero.Button(self.POWER_BUTTON_PIN)
@@ -72,9 +72,6 @@ class CoffeeMaker(Triggerable):
         )
         self.coffee_button.when_released = lambda: send_arduino_message(self.serial_connection, self.COFFEE_ACTION)
         self.steam_button.when_released = lambda: send_arduino_message(self.serial_connection, self.STEAM_ACTION)
-
-    def set_led_controller(self, led_controller: LEDController):
-        self.led_controller = led_controller
 
     def trigger(self, note_sequence: List[str], chord_sequence: List[List[str]]) -> None:
         action = None
