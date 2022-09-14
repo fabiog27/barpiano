@@ -1,3 +1,7 @@
+import subprocess
+import serial
+from typing import List
+
 from notecontrollers.history_controller import HistoryController
 from notecontrollers.single_note_controller import SingleNoteController
 from triggerables.devices.coffeemaker import CoffeeMaker
@@ -6,22 +10,52 @@ from triggerables.devices.lock import Lock
 from triggerables.games.whackamole import WhackAMole
 from midimon import midimon
 
-COFFEE_ARDUINO_IDENTIFIER = '/dev/ttyUSB0'
-# COFFEE_ARDUINO_IDENTIFIER = '/dev/'
-LED_ARDUINO_IDENTIFIER = '/dev/ttyUSB1'
-# LED_ARDUINO_IDENTIFIER = '/dev/cu.usbserial-143230'
+COFFEE_ARDUINO_FUNCTION = 'coffee-maker'
+LED_ARDUINO_FUNCTION = 'led-controller'
+
+BAUD_RATES = [9600, 921600]
+
+
+def get_usb_devices() -> List[str]:
+    ls_output = subprocess.check_output(['ls', '/dev']).decode('ascii')
+    devices = ls_output.split('\n')
+    usb_devices = [device for device in devices if 'ttyUSB' in device]
+    print('Detected USB devices:')
+    print(usb_devices)
+    return usb_devices
+
+
+def find_device_identifier_by_function(usb_devices: List[str], function: str) -> str:
+    for device in usb_devices:
+        try:
+            for baud_rate in BAUD_RATES:
+                ser = serial.Serial(device, baudrate=baud_rate)
+                ser.write(b'Aget device funcZ')
+                response = ser.readline()
+                if response == function:
+                    ser.close()
+                    return device
+        except serial.SerialException or serial.SerialTimeoutException:
+            continue
+    raise ValueError('Device ' + function + ' not found')
+
 
 if __name__ == '__main__':
+    # Find USB devices
+    usb_devices = get_usb_devices()
+    led_controller_serial_identifier = find_device_identifier_by_function(usb_devices, LED_ARDUINO_FUNCTION)
+    coffee_maker_serial_identifier = find_device_identifier_by_function(usb_devices, COFFEE_ARDUINO_FUNCTION)
+
     # Init controllers
     controller = HistoryController()
     led_controller = LEDController(
-        serial_identifier=LED_ARDUINO_IDENTIFIER,
+        serial_identifier=led_controller_serial_identifier,
     )
     single_note_controller = SingleNoteController(led_controller)
 
     # Init triggerables
     coffee_maker = CoffeeMaker(
-        serial_identifier=COFFEE_ARDUINO_IDENTIFIER,
+        serial_identifier=coffee_maker_serial_identifier,
         led_controller=led_controller
     )
     controller.add_triggerable(coffee_maker)

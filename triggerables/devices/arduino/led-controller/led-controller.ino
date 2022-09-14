@@ -46,6 +46,11 @@ void loop() {
       message = "";
       return;
     }
+    if (message.equals("Aget device funcZ")) {
+      Serial.println("led-controller");
+      message = "";
+      return;
+    }
     char startIndex[3] = {'0', '0', '0'};
     char endIndex[3] = {'0', '0', '0'};
     char r[3] = {'0', '0', '0'};

@@ -29,6 +29,10 @@ void setupPin(int number) {
 
 void loop() {
   String message = Serial.readString();
+  if (message.equals("Aget device funcZ")) {
+    Serial.println("coffee-maker");
+    return;
+  }
   if (message.length() > 0) {
     executeAction(message);
   }
