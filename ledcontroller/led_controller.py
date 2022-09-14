@@ -12,10 +12,10 @@ class LEDController(object):
 
     def __init__(self, serial_identifier: str):
         self.note_splitter = re.compile(r"([A-Z]#?)(\d)")
-        self.init_leds(Theme.background_color)
         self.are_note_interactions_active = True
         self.message_manager = LEDMessageManager(serial_identifier)
         self.message_manager.start()
+        self.init_leds(Theme.background_color)
 
     def show_loading_sequence(self, duration_in_s: int):
         self.init_leds(Theme.inactive_color)
