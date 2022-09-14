@@ -61,9 +61,6 @@ class WhackAMole(Game):
         print('started whackamole')
 
     def stop(self):
-        if self.thread is not None:
-            self.thread.join()
-            self.thread = None
         self.finish()
         self.led_controller.show_failure_flash()
         self.reset()
