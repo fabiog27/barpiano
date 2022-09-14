@@ -39,12 +39,12 @@ class LEDMessageManager(object):
         self.serial_connection = serial.Serial(serial_identifier, baudrate=921600, timeout=0.001)
 
     def add_message(self, message: LEDMessage):
-        self.queue.put(message)
+        self.queue.put(message, block=False)
 
     def work_messages(self):
         while self.is_running:
             try:
-                led_message = self.queue.get(block=False)
+                led_message = self.queue.get(timeout=10)
                 send_arduino_message(self.serial_connection, led_message.build_message())
                 self.queue.task_done()
             except Empty:
