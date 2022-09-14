@@ -79,19 +79,21 @@ class WhackAMole(Game):
             if self.lock.acquire(blocking=False):
                 if iterations == MOLES_PER_LIFE:
                     self.lives -= LIFE_LOSS
+                    self.update_lives()
                     iterations = 0
                 self.spawn_mole()
                 self.lock.release()
                 print('lives:', self.lives)
-                self.update_lives()
             if self.lives <= 0:
                 print('u ded')
                 self.stop()
+            iterations += 1
 
     def spawn_mole(self):
-        position = random.randint(START_INDEX, END_INDEX)
-        while position in self.moles:
-            position = random.randint(START_INDEX, END_INDEX)
+        available_positions = [i for i in range(START_INDEX, END_INDEX) if i not in self.moles]
+        if len(available_positions) == 0:
+            return
+        position = random.choice(available_positions)
         self.moles.append(position)
         self.led_controller.set_note_to(get_full_note_name_from_position(position), Theme.mole_color)
         print('spawned', position)
