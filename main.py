@@ -19,22 +19,25 @@ BAUD_RATES = [9600, 921600]
 def get_usb_devices() -> List[str]:
     ls_output = subprocess.check_output(['ls', '/dev']).decode('ascii')
     devices = ls_output.split('\n')
-    usb_devices = [device for device in devices if 'ttyUSB' in device]
+    usb_device_list = ['/dev/' + device for device in devices if 'ttyUSB' in device]
     print('Detected USB devices:')
-    print(usb_devices)
-    return usb_devices
+    print(usb_device_list)
+    return usb_device_list
 
 
-def find_device_identifier_by_function(usb_devices: List[str], function: str) -> str:
-    for device in usb_devices:
+def find_device_identifier_by_function(usb_device_list: List[str], function: str) -> str:
+    for device in usb_device_list:
         try:
             for baud_rate in BAUD_RATES:
-                ser = serial.Serial(device, baudrate=baud_rate)
-                ser.write(b'Aget device funcZ')
-                response = ser.readline()
-                if response == function:
-                    ser.close()
-                    return device
+                try:
+                    ser = serial.Serial(device, baudrate=baud_rate, timeout=0.5)
+                    ser.write(b'Aget device funcZ')
+                    response = ser.readline().decode('ascii')
+                    if function in response:
+                        ser.close()
+                        return device
+                except UnicodeDecodeError:
+                    continue
         except serial.SerialException or serial.SerialTimeoutException:
             continue
     raise ValueError('Device ' + function + ' not found')
