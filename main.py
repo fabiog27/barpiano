@@ -12,8 +12,8 @@ from triggerables.devices.lock import Lock
 from triggerables.games.whackamole import WhackAMole
 from midimon import midimon
 
-# USB_DEVICE_PREFIX = 'ttyUSB'  # Linux
-USB_DEVICE_PREFIX = 'cu.usbserial'  # MacOS
+USB_DEVICE_PREFIX = 'ttyUSB'  # Linux
+# USB_DEVICE_PREFIX = 'cu.usbserial'  # MacOS
 
 COFFEE_ARDUINO_FUNCTION = 'coffee-maker'
 LED_ARDUINO_FUNCTION = 'led-controller'
