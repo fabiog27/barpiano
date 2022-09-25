@@ -105,5 +105,4 @@ class CoffeeMaker(Triggerable):
             except RuntimeError:
                 self.finish()
                 return
-            time.sleep(CoffeeMaker.COFFEE_WAIT_TIME)
         self.finish()
