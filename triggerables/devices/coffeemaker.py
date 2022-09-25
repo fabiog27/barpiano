@@ -98,8 +98,7 @@ class CoffeeMaker(Triggerable):
             print('STEAM_SEQUENCE')
         if action is not None:
             try:
-                message = '{"action":"' + action + '"}'
-                send_arduino_message(self.serial_connection, message)
+                send_arduino_message(self.serial_connection, action)
                 if self.led_controller is not None:
                     self.led_controller.show_success_flash()
                     self.led_controller.show_loading_sequence(CoffeeMaker.COFFEE_WAIT_TIME)
