@@ -15,6 +15,7 @@ class LEDController(object):
         self.are_note_interactions_active = True
         self.message_manager = LEDMessageManager(serial_identifier)
         self.message_manager.start()
+        time.sleep(0.5)
         self.init_leds(Theme.background_color)
 
     def show_loading_sequence(self, duration_in_s: int):
@@ -41,18 +42,24 @@ class LEDController(object):
             self.init_leds(color_b)
             time.sleep(interval)
 
-    def set_note_to(self, full_note_name, color: Tuple[int, int, int]):
+    def set_range_to(self, starting_note: str, ending_note: str, color: Tuple[int, int, int]):
+        starting_led = self.map_note_to_pixel_numbers(starting_note)[0]
+        ending_led = self.map_note_to_pixel_numbers(ending_note)[-1]
+        purpose = 'set range from {0} to {1} to color'.format(starting_note, ending_note)
+        message = LEDMessage(starting_led, ending_led, color, purpose)
+        self.message_manager.add_message(message)
+
+    def set_note_to(self, full_note_name, color: Tuple[int, int, int], purpose=''):
         corresponding_leds = self.map_note_to_pixel_numbers(full_note_name)
-        message = LEDMessage(corresponding_leds[0], corresponding_leds[-1], color)
+        purpose_info = purpose if purpose != '' else 'set ' + full_note_name
+        message = LEDMessage(corresponding_leds[0], corresponding_leds[-1], color, purpose_info)
         self.message_manager.add_message(message)
 
     def activate_note(self, full_note_name):
-        self.set_note_to(full_note_name, Theme.accent_color)
+        self.set_note_to(full_note_name, Theme.accent_color, 'activate ' + full_note_name)
 
     def deactivate_note(self, full_note_name):
-        corresponding_leds = self.map_note_to_pixel_numbers(full_note_name)
-        message = LEDMessage(corresponding_leds[0], corresponding_leds[-1], Theme.background_color)
-        self.message_manager.add_message(message)
+        self.set_note_to(full_note_name, Theme.background_color, 'deactivate ' + full_note_name)
 
     def init_leds(self, color: Tuple[int, int, int]):
         message = LEDMessage(0, LEDS.PIXEL_AMOUNT - 1, color)

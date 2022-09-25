@@ -33,13 +33,14 @@ def get_usb_devices() -> List[str]:
 def find_device_identifier_by_function(usb_device_list: List[str], function: str) -> str:
     print('-' * 30)
     print('Trying to find device identifier for', function)
+    ser = None
     for device in usb_device_list:
         print('Trying device', device)
         try:
             for baud_rate in BAUD_RATES:
+                ser = serial.Serial(device, baudrate=baud_rate, timeout=0.5)
                 try:
                     print('Trying baud rate', baud_rate)
-                    ser = serial.Serial(device, baudrate=baud_rate, timeout=0.5)
                     ser.write(b'Aget device funcZ')
                     response = ser.readline().decode('ascii')
                     if function in response:
@@ -48,8 +49,11 @@ def find_device_identifier_by_function(usb_device_list: List[str], function: str
                         return device
                 except UnicodeDecodeError:
                     print('Wrong baud rate')
+                    ser.close()
                     continue
         except serial.SerialException or serial.SerialTimeoutException:
+            if ser is not None:
+                ser.close()
             print('Serial exception')
             continue
     raise ValueError('Device ' + function + ' not found')

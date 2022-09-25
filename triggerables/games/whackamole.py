@@ -1,3 +1,4 @@
+import math
 import random
 import time
 from threading import Thread, Lock
@@ -15,14 +16,14 @@ START_INDEX = get_position_from_full_note_name(MIN_PLAYABLE)
 END_INDEX = get_position_from_full_note_name(MAX_PLAYABLE)
 
 SCORE_DIFFICULTY_STEP = 3
-DIFFICULTY_STEP_FACTOR = 0.3
+DIFFICULTY_STEP_FACTOR = 0.05
 
 MAX_LIVES = 16
 LIFE_LOSS = 1
-LIVES_PER_MOLE = 1.1 * LIFE_LOSS / 6
+MOLES_PER_LIFE = 2
+LIVES_PER_MOLE = 1.1 * LIFE_LOSS / MOLES_PER_LIFE
 
-MOLES_PER_LIFE = 6
-STARTING_INTERVAL = 1 / MOLES_PER_LIFE
+STARTING_INTERVAL = 2 / MOLES_PER_LIFE
 MINIMUM_INTERVAL = 0.1 * STARTING_INTERVAL
 
 TRIGGER_SEQUENCE = ['A#', 'A', 'C', 'C', 'C']  # BACCC
@@ -66,27 +67,35 @@ class WhackAMole(Game):
         self.reset()
 
     def update_lives(self):
-        for i in range(16):
-            color = Theme.active_color
-            if i > self.lives:
-                color = Theme.inactive_color
-            self.led_controller.set_note_to(get_full_note_name_from_position(i), color)
+        self.led_controller.set_range_to(
+            get_full_note_name_from_position(0),
+            get_full_note_name_from_position(math.floor(self.lives) - 1),
+            Theme.active_color
+        )
+        time.sleep(0.001)
+        if self.lives < MAX_LIVES:
+            self.led_controller.set_range_to(
+                get_full_note_name_from_position(math.ceil(self.lives)),
+                get_full_note_name_from_position(START_INDEX - 1),
+                Theme.inactive_color
+            )
 
     def background_task(self):
         iterations = 0
         while self.is_running:
             time.sleep(self.tick_interval)
-            if self.lock.acquire(blocking=False):
+            if self.lock.acquire():
                 if iterations == MOLES_PER_LIFE:
                     self.lives -= LIFE_LOSS
-                    self.update_lives()
+                    if self.lives <= 0:
+                        # print('u ded')
+                        self.stop()
+                    else:
+                        self.update_lives()
                     iterations = 0
                 self.spawn_mole()
                 self.lock.release()
-                print('lives:', self.lives)
-            if self.lives <= 0:
-                print('u ded')
-                self.stop()
+                # print('lives:', self.lives)
             iterations += 1
 
     def spawn_mole(self):
@@ -95,19 +104,23 @@ class WhackAMole(Game):
             return
         position = random.choice(available_positions)
         self.moles.append(position)
-        self.led_controller.set_note_to(get_full_note_name_from_position(position), Theme.mole_color)
-        print('spawned', position)
+        self.led_controller.set_note_to(
+            get_full_note_name_from_position(position),
+            Theme.mole_color,
+            'spawn mole on ' + str(position)
+        )
+        # print('spawned', position)
 
     def try_to_whack_mole(self, position):
         if position not in self.moles:
-            print(position, 'not whackable')
+            # print(position, 'not whackable')
             return
         if self.lock.acquire():
-            print('whacked', position)
+            # print('whacked', position)
             self.moles.remove(position)
             self.score += 1
-            if self.score % SCORE_DIFFICULTY_STEP == 0 and self.tick_interval > MINIMUM_INTERVAL:
-                self.tick_interval *= 1 - DIFFICULTY_STEP_FACTOR
-            if self.lives < MAX_LIVES - LIVES_PER_MOLE:
-                self.lives += LIVES_PER_MOLE
-            self.lock.release()
+            # if self.score % SCORE_DIFFICULTY_STEP == 0 and self.tick_interval > MINIMUM_INTERVAL:
+            #    self.tick_interval *= 1 - DIFFICULTY_STEP_FACTOR
+            # if self.lives < MAX_LIVES - LIVES_PER_MOLE:
+            #    self.lives += LIVES_PER_MOLE
+            # self.lock.release()
