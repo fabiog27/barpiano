@@ -71,3 +71,6 @@ class Triggerable(object):
 
     def on_disengage_bar_mode(self) -> None:
         pass
+
+    def log(self, message: str):
+        print(self.name, message)
