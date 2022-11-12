@@ -12,8 +12,8 @@ from triggerables.devices.lock import Lock
 from triggerables.games.whackamole import WhackAMole
 from midimon import midimon
 
-USB_DEVICE_PREFIX = 'ttyUSB'  # Linux
-# USB_DEVICE_PREFIX = 'cu.usbserial'  # MacOS
+USB_DEVICE_PREFIX_LINUX = 'ttyUSB'
+USB_DEVICE_PREFIX_MACOS = 'cu.usbserial'
 
 COFFEE_ARDUINO_FUNCTION = 'coffee-maker'
 LED_ARDUINO_FUNCTION = 'led-controller'
@@ -24,7 +24,8 @@ BAUD_RATES = [9600, 921600]
 def get_usb_devices() -> List[str]:
     ls_output = subprocess.check_output(['ls', '/dev']).decode('ascii')
     devices = ls_output.split('\n')
-    usb_device_list = ['/dev/' + device for device in devices if USB_DEVICE_PREFIX in device]
+    usb_device_list = ['/dev/' + device for device in devices if
+                       USB_DEVICE_PREFIX_LINUX in device or USB_DEVICE_PREFIX_MACOS in device]
     print('Detected USB devices:')
     print(usb_device_list)
     return usb_device_list
@@ -66,7 +67,10 @@ if __name__ == '__main__':
 
     # Init controllers
     controller = HistoryController()
-    led_controller_serial_identifier = find_device_identifier_by_function(usb_devices, LED_ARDUINO_FUNCTION)
+    try:
+        led_controller_serial_identifier = find_device_identifier_by_function(usb_devices, LED_ARDUINO_FUNCTION)
+    except ValueError:
+        led_controller_serial_identifier = 'unknown'
     led_controller = LEDController(
         serial_identifier=led_controller_serial_identifier,
     )
