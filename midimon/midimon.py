@@ -293,7 +293,11 @@ def MidiCallback(mididev, message, time_stamp):
         messagetype = status >> 4
         messagechannel = (status & 0xF) + 1  # make channel# human..
         event_type = messages[messagetype][1]
-        if messagetype == 9:  # note off/on
+        if messagetype == 8:  # Note off on some devices
+            note_name = midinote2notename(data1, 1)
+            short_name = note_name["short_name"]
+            history_manager.deactivate_note(note_name["full_name"])
+        elif messagetype == 9:  # note off/on
             note_name = midinote2notename(data1, 1)
             short_name = note_name["short_name"]
             if messagechannel == 1:
