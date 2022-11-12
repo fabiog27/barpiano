@@ -43,15 +43,25 @@ class LEDMessageManager(object):
         self.queue.put(message, timeout=1)
 
     def work_messages(self):
-        serial_connection = serial.Serial(self.serial_identifier, baudrate=921600, timeout=0.1)
+        serial_connection = None
+        if self.serial_identifier != 'unknown':
+            serial_connection = serial.Serial(self.serial_identifier, baudrate=921600, timeout=0.1)
         led_message = None
         while self.is_running:
+            if serial_connection is None:
+                try:
+                    print('waiting for led message')
+                    led_message = self.queue.get(timeout=10)
+                except Empty:
+                    continue
+                print('message purpose:', led_message.purpose)
+                self.queue.task_done()
+                continue
             try:
                 has_waited = False
                 while serial_connection.out_waiting > 0:
                     print('output waiting')
                     has_waited = True
-                    pass
                 if has_waited and led_message is not None:
                     print(led_message.purpose)
                 led_message = self.queue.get(timeout=10)
@@ -60,7 +70,8 @@ class LEDMessageManager(object):
                 self.queue.task_done()
             except Empty:
                 pass
-        serial_connection.close()
+        if serial_connection is not None:
+            serial_connection.close()
 
     def start(self):
         self.is_running = True

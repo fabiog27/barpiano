@@ -20,11 +20,11 @@ DIFFICULTY_STEP_FACTOR = 0.05
 
 MAX_LIVES = 16
 LIFE_LOSS = 1
-MOLES_PER_LIFE = 2
+MOLES_PER_LIFE = 1
 LIVES_PER_MOLE = 1.1 * LIFE_LOSS / MOLES_PER_LIFE
 
-STARTING_INTERVAL = 2 / MOLES_PER_LIFE
-MINIMUM_INTERVAL = 0.1 * STARTING_INTERVAL
+STARTING_INTERVAL = 1 / MOLES_PER_LIFE
+MINIMUM_INTERVAL = 0.05 * STARTING_INTERVAL
 
 TRIGGER_SEQUENCE = ['A#', 'A', 'C', 'C', 'C']  # BACCC
 
@@ -56,23 +56,25 @@ class WhackAMole(Game):
         self.try_to_whack_mole(position)
 
     def start(self):
+        self.log('Starting, lives: ' + str(self.lives))
         self.update_lives()
         self.thread = Thread(target=self.background_task)
         self.thread.start()
-        print('started whackamole')
 
     def stop(self):
         self.finish()
         self.led_controller.show_failure_flash()
         self.reset()
+        print('lives:', self.lives)
 
     def update_lives(self):
-        self.led_controller.set_range_to(
-            get_full_note_name_from_position(0),
-            get_full_note_name_from_position(math.floor(self.lives) - 1),
-            Theme.active_color
-        )
-        time.sleep(0.001)
+        if math.floor(self.lives) > 0:
+            self.led_controller.set_range_to(
+                get_full_note_name_from_position(0),
+                get_full_note_name_from_position(math.floor(self.lives) - 1),
+                Theme.active_color
+            )
+            time.sleep(0.001)
         if self.lives < MAX_LIVES:
             self.led_controller.set_range_to(
                 get_full_note_name_from_position(math.ceil(self.lives)),
@@ -88,8 +90,10 @@ class WhackAMole(Game):
                 if iterations == MOLES_PER_LIFE:
                     self.lives -= LIFE_LOSS
                     if self.lives <= 0:
-                        # print('u ded')
+                        print('u ded')
                         self.stop()
+                        self.lock.release()
+                        break
                     else:
                         self.update_lives()
                     iterations = 0
@@ -97,6 +101,7 @@ class WhackAMole(Game):
                 self.lock.release()
                 # print('lives:', self.lives)
             iterations += 1
+        self.log('stopped running background task')
 
     def spawn_mole(self):
         available_positions = [i for i in range(START_INDEX, END_INDEX) if i not in self.moles]
@@ -116,11 +121,10 @@ class WhackAMole(Game):
             # print(position, 'not whackable')
             return
         if self.lock.acquire():
-            # print('whacked', position)
             self.moles.remove(position)
             self.score += 1
-            # if self.score % SCORE_DIFFICULTY_STEP == 0 and self.tick_interval > MINIMUM_INTERVAL:
-            #    self.tick_interval *= 1 - DIFFICULTY_STEP_FACTOR
-            # if self.lives < MAX_LIVES - LIVES_PER_MOLE:
-            #    self.lives += LIVES_PER_MOLE
-            # self.lock.release()
+            if self.score % SCORE_DIFFICULTY_STEP == 0 and self.tick_interval > MINIMUM_INTERVAL:
+                self.tick_interval *= 1 - DIFFICULTY_STEP_FACTOR
+            if self.lives < MAX_LIVES - LIVES_PER_MOLE:
+                self.lives += LIVES_PER_MOLE
+            self.lock.release()
