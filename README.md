@@ -17,7 +17,7 @@ Devices will be implemented over time :)
 
 ### Other GPIO pins ###
 
-Some pins are in use by Samplerbox, additionally, this project uses the following:
+> Some pins are in use by Samplerbox, additionally, this project uses the following:
 
 | Use                | GPIO Pin number |
 |--------------------|-----------------|
